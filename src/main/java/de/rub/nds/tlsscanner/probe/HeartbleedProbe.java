@@ -11,7 +11,7 @@ package de.rub.nds.tlsscanner.probe;
 import de.rub.nds.tlsscanner.constants.ProbeType;
 import de.rub.nds.tlsattacker.attacks.config.HeartbleedCommandConfig;
 import de.rub.nds.tlsattacker.attacks.impl.HeartbleedAttacker;
-import de.rub.nds.tlsattacker.core.config.delegate.CiphersuiteDelegate;
+import de.rub.nds.tlsattacker.core.config.delegate.CipherSuiteDelegate;
 import de.rub.nds.tlsattacker.core.config.delegate.ClientDelegate;
 import de.rub.nds.tlsattacker.core.config.delegate.Delegate;
 import de.rub.nds.tlsattacker.core.constants.CipherSuite;
@@ -40,7 +40,7 @@ public class HeartbleedProbe extends TlsProbe {
         ClientDelegate delegate = (ClientDelegate) heartbleedConfig.getDelegate(ClientDelegate.class);
         delegate.setHost(getScannerConfig().getClientDelegate().getHost());
         if (supportedCiphers != null) {
-            CiphersuiteDelegate ciphersuiteDelegate = (CiphersuiteDelegate) heartbleedConfig.getDelegate(CiphersuiteDelegate.class);
+            CipherSuiteDelegate ciphersuiteDelegate = (CipherSuiteDelegate) heartbleedConfig.getDelegate(CipherSuiteDelegate.class);
             ciphersuiteDelegate.setCipherSuites(supportedCiphers.get(0));
         }
         HeartbleedAttacker attacker = new HeartbleedAttacker(heartbleedConfig);
