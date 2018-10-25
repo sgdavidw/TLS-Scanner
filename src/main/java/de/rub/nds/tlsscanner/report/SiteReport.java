@@ -27,9 +27,9 @@ import de.rub.nds.tlsscanner.probe.certificate.CertificateReport;
 import de.rub.nds.tlsscanner.report.result.VersionSuiteListPair;
 import de.rub.nds.tlsscanner.report.result.hpkp.HpkpPin;
 import de.rub.nds.tlsscanner.report.result.paddingoracle.PaddingOracleTestResult;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
+
 import org.bouncycastle.crypto.tls.Certificate;
 
 /**
@@ -50,22 +50,7 @@ public class SiteReport {
     private Boolean requiresSni = null;
 
     //common bugs
-    private Boolean extensionIntolerance; //does it handle unknown extenstions correctly?
-    private Boolean versionIntolerance; //does it handle unknown versions correctly?
-    private Boolean cipherSuiteIntolerance; //does it handle unknown ciphersuites correctly?
-    private Boolean cipherSuiteLengthIntolerance512; //does it handle long ciphersuite length values correctly?
-    private Boolean compressionIntolerance; //does it handle unknown compression algorithms correctly
-    private Boolean alpnIntolerance; //does it handle unknown alpn strings correctly?
-    private Boolean clientHelloLengthIntolerance; // 256 - 511 <-- ch should be bigger than this
-    private Boolean namedGroupIntolerant; // does it handle unknown groups correctly
-    private Boolean emptyLastExtensionIntolerance; //does it break on empty last extension
-    private Boolean namedSignatureAndHashAlgorithmIntolerance; // does it handle signature and hash algorithms correctly
-    private Boolean maxLengthClientHelloIntolerant; // server does not like really big client hello messages
-    private Boolean onlySecondCiphersuiteByteEvaluated; //is only the second byte of the ciphersuite evaluated
-    private Boolean ignoresCipherSuiteOffering; //does it ignore the offered ciphersuites
-    private Boolean reflectsCipherSuiteOffering; //does it ignore the offered ciphersuites
-    private Boolean ignoresOfferedNamedGroups; //does it ignore the offered named groups
-    private Boolean ignoresOfferedSignatureAndHashAlgorithms; //does it ignore the sig hash algorithms
+    private Map<String, Boolean> commonBugs = new HashMap<>();
 
     //Attacks
     private Boolean bleichenbacherVulnerable = null;
@@ -87,30 +72,7 @@ public class SiteReport {
 
     //Version
     private List<ProtocolVersion> versions = null;
-    private Boolean supportsSsl2 = null;
-    private Boolean supportsSsl3 = null;
-    private Boolean supportsTls10 = null;
-    private Boolean supportsTls11 = null;
-    private Boolean supportsTls12 = null;
-    private Boolean supportsTls13 = null;
-    private Boolean supportsTls13Draft14 = null;
-    private Boolean supportsTls13Draft15 = null;
-    private Boolean supportsTls13Draft16 = null;
-    private Boolean supportsTls13Draft17 = null;
-    private Boolean supportsTls13Draft18 = null;
-    private Boolean supportsTls13Draft19 = null;
-    private Boolean supportsTls13Draft20 = null;
-    private Boolean supportsTls13Draft21 = null;
-    private Boolean supportsTls13Draft22 = null;
-    private Boolean supportsTls13Draft23 = null;
-    private Boolean supportsTls13Draft24 = null;
-    private Boolean supportsTls13Draft25 = null;
-    private Boolean supportsTls13Draft26 = null;
-    private Boolean supportsTls13Draft27 = null;
-    private Boolean supportsTls13Draft28 = null;
-    private Boolean supportsDtls10 = null;
-    private Boolean supportsDtls12 = null;
-    private Boolean supportsDtls13 = null;
+    private Map<String, Boolean> versionSupport = new HashMap<>();
 
     //Extensions
     private List<ExtensionType> supportedExtensions = null;
@@ -134,53 +96,13 @@ public class SiteReport {
     //Certificate
     private Certificate certificate = null;
     private List<CertificateReport> certificateReports = null;
-    private Boolean certificateExpired = null;
-    private Boolean certificateNotYetValid = null;
-    private Boolean certificateHasWeakHashAlgorithm = null;
-    private Boolean certificateHasWeakSignAlgorithm = null;
-    private Boolean certificateMachtesDomainName = null;
-    private Boolean certificateIsTrusted = null;
-    private Boolean certificateKeyIsBlacklisted = null;
+    private Map<String, Boolean> certQualities = new HashMap<>();
 
     //Ciphers
     private List<VersionSuiteListPair> versionSuitePairs = null;
     private Set<CipherSuite> cipherSuites = null;
     private List<CipherSuite> supportedTls13CipherSuites = null;
-    private Boolean supportsNullCiphers = null;
-    private Boolean supportsAnonCiphers = null;
-    private Boolean supportsExportCiphers = null;
-    private Boolean supportsDesCiphers = null;
-    private Boolean supportsSeedCiphers = null;
-    private Boolean supportsIdeaCiphers = null;
-    private Boolean supportsRc2Ciphers = null;
-    private Boolean supportsRc4Ciphers = null;
-    private Boolean supportsTrippleDesCiphers = null;
-    private Boolean supportsPostQuantumCiphers = null;
-    private Boolean supportsAeadCiphers = null;
-    private Boolean supportsPfsCiphers = null;
-    private Boolean supportsOnlyPfsCiphers = null;
-    private Boolean enforcesCipherSuiteOrdering = null;
-    private Boolean supportsAes = null;
-    private Boolean supportsCamellia = null;
-    private Boolean supportsAria = null;
-    private Boolean supportsChacha = null;
-    private Boolean supportsRsa = null;
-    private Boolean supportsDh = null;
-    private Boolean supportsEcdh = null;
-    private Boolean supportsStaticEcdh = null;
-    private Boolean supportsGost = null;
-    private Boolean supportsSrp = null;
-    private Boolean supportsKerberos = null;
-    private Boolean supportsPskPlain = null;
-    private Boolean supportsPskRsa = null;
-    private Boolean supportsPskDhe = null;
-    private Boolean supportsPskEcdhe = null;
-    private Boolean supportsFortezza = null;
-    private Boolean supportsNewHope = null;
-    private Boolean supportsEcmqv = null;
-    private Boolean prefersPfsCiphers = null;
-    private Boolean supportsStreamCiphers = null;
-    private Boolean supportsBlockCiphers = null;
+    private Map<String, Boolean> cipherSupport = new HashMap<>();
 
     //Session
     private Boolean supportsSessionTicket = null;
@@ -234,107 +156,107 @@ public class SiteReport {
     }
 
     public Boolean getCompressionIntolerance() {
-        return compressionIntolerance;
+        return this.commonBugs.get(CommonBugs.COMPRESSION_INTOLERANCE);
     }
 
     public void setCompressionIntolerance(Boolean compressionIntolerance) {
-        this.compressionIntolerance = compressionIntolerance;
+        this.commonBugs.put(CommonBugs.COMPRESSION_INTOLERANCE, compressionIntolerance);
     }
 
     public Boolean getCipherSuiteLengthIntolerance512() {
-        return cipherSuiteLengthIntolerance512;
+        return this.commonBugs.get(CommonBugs.CIPHER_SUITE_LENGTH_INTOLERANCE);
     }
 
     public void setCipherSuiteLengthIntolerance512(Boolean cipherSuiteLengthIntolerance512) {
-        this.cipherSuiteLengthIntolerance512 = cipherSuiteLengthIntolerance512;
+        this.commonBugs.put(CommonBugs.CIPHER_SUITE_LENGTH_INTOLERANCE, cipherSuiteLengthIntolerance512);
     }
 
     public Boolean getAlpnIntolerance() {
-        return alpnIntolerance;
+        return this.commonBugs.get(CommonBugs.ALPN_INTOLERANCE);
     }
 
     public void setAlpnIntolerance(Boolean alpnIntolerance) {
-        this.alpnIntolerance = alpnIntolerance;
+        this.commonBugs.put(CommonBugs.ALPN_INTOLERANCE, alpnIntolerance);
     }
 
     public Boolean getClientHelloLengthIntolerance() {
-        return clientHelloLengthIntolerance;
+        return this.commonBugs.get(CommonBugs.CLIENT_HELLO_LENGTH_INTOLERANCE);
     }
 
     public void setClientHelloLengthIntolerance(Boolean clientHelloLengthIntolerance) {
-        this.clientHelloLengthIntolerance = clientHelloLengthIntolerance;
+        this.commonBugs.put(CommonBugs.CLIENT_HELLO_LENGTH_INTOLERANCE, clientHelloLengthIntolerance);
     }
 
     public Boolean getEmptyLastExtensionIntolerance() {
-        return emptyLastExtensionIntolerance;
+        return this.commonBugs.get(CommonBugs.EMPTY_LAST_EXTENSION_INTOLERANCE);
     }
 
     public void setEmptyLastExtensionIntolerance(Boolean emptyLastExtensionIntolerance) {
-        this.emptyLastExtensionIntolerance = emptyLastExtensionIntolerance;
+        this.commonBugs.put(CommonBugs.EMPTY_LAST_EXTENSION_INTOLERANCE, emptyLastExtensionIntolerance);
     }
 
     public Boolean getOnlySecondCiphersuiteByteEvaluated() {
-        return onlySecondCiphersuiteByteEvaluated;
+        return this.commonBugs.get(CommonBugs.ONLY_SECOND_CIPHERSUITE_BYTE_EVALUATED);
     }
 
     public void setOnlySecondCiphersuiteByteEvaluated(Boolean onlySecondCiphersuiteByteEvaluated) {
-        this.onlySecondCiphersuiteByteEvaluated = onlySecondCiphersuiteByteEvaluated;
+        this.commonBugs.put(CommonBugs.ONLY_SECOND_CIPHERSUITE_BYTE_EVALUATED, onlySecondCiphersuiteByteEvaluated);
     }
 
     public Boolean getNamedGroupIntolerant() {
-        return namedGroupIntolerant;
+        return this.commonBugs.get(CommonBugs.NAMED_GROUP_INTOLERANT);
     }
 
     public void setNamedGroupIntolerant(Boolean namedGroupIntolerant) {
-        this.namedGroupIntolerant = namedGroupIntolerant;
+        this.commonBugs.put(CommonBugs.NAMED_GROUP_INTOLERANT, namedGroupIntolerant);
     }
 
     public Boolean getNamedSignatureAndHashAlgorithmIntolerance() {
-        return namedSignatureAndHashAlgorithmIntolerance;
+        return this.commonBugs.get(CommonBugs.NAMED_SIGNATURE_AND_HASH_ALGORITHM_INTOLERANCE);
     }
 
     public void setNamedSignatureAndHashAlgorithmIntolerance(Boolean namedSignatureAndHashAlgorithmIntolerance) {
-        this.namedSignatureAndHashAlgorithmIntolerance = namedSignatureAndHashAlgorithmIntolerance;
+        this.commonBugs.put(CommonBugs.NAMED_SIGNATURE_AND_HASH_ALGORITHM_INTOLERANCE, namedSignatureAndHashAlgorithmIntolerance);
     }
 
     public Boolean getIgnoresCipherSuiteOffering() {
-        return ignoresCipherSuiteOffering;
+        return this.commonBugs.get(CommonBugs.IGNORES_CIPHER_SUITE_OFFERING);
     }
 
     public void setIgnoresCipherSuiteOffering(Boolean ignoresCipherSuiteOffering) {
-        this.ignoresCipherSuiteOffering = ignoresCipherSuiteOffering;
+        this.commonBugs.put(CommonBugs.IGNORES_CIPHER_SUITE_OFFERING, ignoresCipherSuiteOffering);
     }
 
     public Boolean getReflectsCipherSuiteOffering() {
-        return reflectsCipherSuiteOffering;
+        return this.commonBugs.get(CommonBugs.REFLECTS_CIPHER_SUITE_OFFERING);
     }
 
     public void setReflectsCipherSuiteOffering(Boolean reflectsCipherSuiteOffering) {
-        this.reflectsCipherSuiteOffering = reflectsCipherSuiteOffering;
+        this.commonBugs.put(CommonBugs.REFLECTS_CIPHER_SUITE_OFFERING, reflectsCipherSuiteOffering);
     }
 
     public Boolean getIgnoresOfferedNamedGroups() {
-        return ignoresOfferedNamedGroups;
+        return this.commonBugs.get(CommonBugs.IGNORES_OFFERED_NAMED_GROUPS);
     }
 
     public void setIgnoresOfferedNamedGroups(Boolean ignoresOfferedNamedGroups) {
-        this.ignoresOfferedNamedGroups = ignoresOfferedNamedGroups;
+        this.commonBugs.put(CommonBugs.IGNORES_OFFERED_NAMED_GROUPS, ignoresOfferedNamedGroups);
     }
 
     public Boolean getIgnoresOfferedSignatureAndHashAlgorithms() {
-        return ignoresOfferedSignatureAndHashAlgorithms;
+        return this.commonBugs.get(CommonBugs.IGNORES_OFFERED_SIGNATURE_AND_HASH_ALGORITHMS);
     }
 
     public void setIgnoresOfferedSignatureAndHashAlgorithms(Boolean ignoresOfferedSignatureAndHashAlgorithms) {
-        this.ignoresOfferedSignatureAndHashAlgorithms = ignoresOfferedSignatureAndHashAlgorithms;
+        this.commonBugs.put(CommonBugs.IGNORES_OFFERED_SIGNATURE_AND_HASH_ALGORITHMS, ignoresOfferedSignatureAndHashAlgorithms);
     }
 
     public Boolean getMaxLengthClientHelloIntolerant() {
-        return maxLengthClientHelloIntolerant;
+        return this.commonBugs.get(CommonBugs.MAX_LENGTH_CLIENT_HELLO_INTOLERANT);
     }
 
     public void setMaxLengthClientHelloIntolerant(Boolean maxLengthClientHelloIntolerant) {
-        this.maxLengthClientHelloIntolerant = maxLengthClientHelloIntolerant;
+        this.commonBugs.put(CommonBugs.MAX_LENGTH_CLIENT_HELLO_INTOLERANT, maxLengthClientHelloIntolerant);
     }
 
     public Boolean getFreakVulnerable() {
@@ -370,199 +292,214 @@ public class SiteReport {
     }
 
     public Boolean getSupportsSsl2() {
-        return supportsSsl2;
+        return this.versionSupport.get(VersionSupport.SSL_2);
     }
 
     public void setSupportsSsl2(Boolean supportsSsl2) {
-        this.supportsSsl2 = supportsSsl2;
+       this.versionSupport.put(VersionSupport.SSL_2, supportsSsl2);
     }
 
     public Boolean getSupportsSsl3() {
-        return supportsSsl3;
+        return this.versionSupport.get(VersionSupport.SSL_3);
     }
 
     public void setSupportsSsl3(Boolean supportsSsl3) {
-        this.supportsSsl3 = supportsSsl3;
+        this.versionSupport.put(VersionSupport.SSL_3, supportsSsl3);
     }
 
     public Boolean getSupportsTls10() {
-        return supportsTls10;
+        return this.versionSupport.get(VersionSupport.TLS_10);
     }
 
     public void setSupportsTls10(Boolean supportsTls10) {
-        this.supportsTls10 = supportsTls10;
+        this.versionSupport.put(VersionSupport.TLS_10, supportsTls10);
     }
 
     public Boolean getSupportsTls11() {
-        return supportsTls11;
+        return this.versionSupport.get(VersionSupport.TLS_11);
     }
 
     public void setSupportsTls11(Boolean supportsTls11) {
-        this.supportsTls11 = supportsTls11;
+        this.versionSupport.put(VersionSupport.TLS_11, supportsTls11);
     }
 
     public Boolean getSupportsTls12() {
-        return supportsTls12;
+        return this.versionSupport.get(VersionSupport.TLS_12);
     }
 
     public void setSupportsTls12(Boolean supportsTls12) {
-        this.supportsTls12 = supportsTls12;
+        this.versionSupport.put(VersionSupport.TLS_12, supportsTls12);
     }
 
     public Boolean supportsAnyTls13() {
-        return supportsTls13 == Boolean.TRUE || supportsTls13Draft14 == Boolean.TRUE || supportsTls13Draft15 == Boolean.TRUE || supportsTls13Draft16 == Boolean.TRUE || supportsTls13Draft17 == Boolean.TRUE || supportsTls13Draft18 == Boolean.TRUE || supportsTls13Draft19 == Boolean.TRUE || supportsTls13Draft20 == Boolean.TRUE || supportsTls13Draft21 == Boolean.TRUE || supportsTls13Draft22 == Boolean.TRUE;
+        return this.versionSupport.get(VersionSupport.TLS_13) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_14) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_15) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_16) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_17) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_18) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_19) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_20) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_21) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_22) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_23) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_24) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_25) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_26) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_27) == Boolean.TRUE
+                || this.versionSupport.get(VersionSupport.TLS_13_DRAFT_28) == Boolean.TRUE;
     }
 
     public Boolean getSupportsTls13() {
-        return supportsTls13;
+        return this.versionSupport.get(VersionSupport.TLS_13);
     }
 
     public void setSupportsTls13(Boolean supportsTls13) {
-        this.supportsTls13 = supportsTls13;
+        this.versionSupport.put(VersionSupport.TLS_13, supportsTls13);
     }
 
     public Boolean getSupportsTls13Draft14() {
-        return supportsTls13Draft14;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_14);
     }
 
     public void setSupportsTls13Draft14(Boolean supportsTls13Draft14) {
-        this.supportsTls13Draft14 = supportsTls13Draft14;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_14, supportsTls13Draft14);
     }
 
     public Boolean getSupportsTls13Draft15() {
-        return supportsTls13Draft15;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_15);
     }
 
     public void setSupportsTls13Draft15(Boolean supportsTls13Draft15) {
-        this.supportsTls13Draft15 = supportsTls13Draft15;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_15, supportsTls13Draft15);
     }
 
     public Boolean getSupportsTls13Draft16() {
-        return supportsTls13Draft16;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_16);
     }
 
     public void setSupportsTls13Draft16(Boolean supportsTls13Draft16) {
-        this.supportsTls13Draft16 = supportsTls13Draft16;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_16, supportsTls13Draft16);
     }
 
     public Boolean getSupportsTls13Draft17() {
-        return supportsTls13Draft17;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_17);
     }
 
     public void setSupportsTls13Draft17(Boolean supportsTls13Draft17) {
-        this.supportsTls13Draft17 = supportsTls13Draft17;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_17, supportsTls13Draft17);
     }
 
     public Boolean getSupportsTls13Draft18() {
-        return supportsTls13Draft18;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_18);
     }
 
     public void setSupportsTls13Draft18(Boolean supportsTls13Draft18) {
-        this.supportsTls13Draft18 = supportsTls13Draft18;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_18, supportsTls13Draft18);
     }
 
     public Boolean getSupportsTls13Draft19() {
-        return supportsTls13Draft19;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_19);
     }
 
     public void setSupportsTls13Draft19(Boolean supportsTls13Draft19) {
-        this.supportsTls13Draft19 = supportsTls13Draft19;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_19, supportsTls13Draft19);
     }
 
     public Boolean getSupportsTls13Draft20() {
-        return supportsTls13Draft20;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_20);
     }
 
     public void setSupportsTls13Draft20(Boolean supportsTls13Draft20) {
-        this.supportsTls13Draft20 = supportsTls13Draft20;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_20, supportsTls13Draft20);
     }
 
     public Boolean getSupportsTls13Draft21() {
-        return supportsTls13Draft21;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_21);
     }
 
     public void setSupportsTls13Draft21(Boolean supportsTls13Draft21) {
-        this.supportsTls13Draft21 = supportsTls13Draft21;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_21, supportsTls13Draft21);
     }
 
     public Boolean getSupportsTls13Draft22() {
-        return supportsTls13Draft22;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_22);
     }
 
     public void setSupportsTls13Draft22(Boolean supportsTls13Draft22) {
-        this.supportsTls13Draft22 = supportsTls13Draft22;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_22, supportsTls13Draft22);
     }
 
     public Boolean getSupportsTls13Draft23() {
-        return supportsTls13Draft23;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_23);
     }
 
     public void setSupportsTls13Draft23(Boolean supportsTls13Draft23) {
-        this.supportsTls13Draft23 = supportsTls13Draft23;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_23, supportsTls13Draft23);
     }
 
     public Boolean getSupportsTls13Draft24() {
-        return supportsTls13Draft24;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_24);
     }
 
     public void setSupportsTls13Draft24(Boolean supportsTls13Draft24) {
-        this.supportsTls13Draft24 = supportsTls13Draft24;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_24, supportsTls13Draft24);
     }
 
     public Boolean getSupportsTls13Draft25() {
-        return supportsTls13Draft25;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_25);
     }
 
     public void setSupportsTls13Draft25(Boolean supportsTls13Draft25) {
-        this.supportsTls13Draft25 = supportsTls13Draft25;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_25, supportsTls13Draft25);
     }
 
     public Boolean getSupportsTls13Draft26() {
-        return supportsTls13Draft26;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_26);
     }
 
     public void setSupportsTls13Draft26(Boolean supportsTls13Draft26) {
-        this.supportsTls13Draft26 = supportsTls13Draft26;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_26, supportsTls13Draft26);
     }
 
     public Boolean getSupportsTls13Draft27() {
-        return supportsTls13Draft27;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_27);
     }
 
     public void setSupportsTls13Draft27(Boolean supportsTls13Draft27) {
-        this.supportsTls13Draft27 = supportsTls13Draft27;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_27, supportsTls13Draft27);
     }
 
     public Boolean getSupportsTls13Draft28() {
-        return supportsTls13Draft28;
+        return this.versionSupport.get(VersionSupport.TLS_13_DRAFT_28);
     }
 
     public void setSupportsTls13Draft28(Boolean supportsTls13Draft28) {
-        this.supportsTls13Draft28 = supportsTls13Draft28;
+        this.versionSupport.put(VersionSupport.TLS_13_DRAFT_28, supportsTls13Draft28);
     }
 
     public Boolean getSupportsDtls10() {
-        return supportsDtls10;
+        return this.versionSupport.get(VersionSupport.DTLS_10);
     }
 
     public void setSupportsDtls10(Boolean supportsDtls10) {
-        this.supportsDtls10 = supportsDtls10;
+        this.versionSupport.put(VersionSupport.DTLS_10, supportsDtls10);
     }
 
     public Boolean getSupportsDtls12() {
-        return supportsDtls12;
+        return this.versionSupport.get(VersionSupport.DTLS_12);
     }
 
     public void setSupportsDtls12(Boolean supportsDtls12) {
-        this.supportsDtls12 = supportsDtls12;
+        this.versionSupport.put(VersionSupport.DTLS_12, supportsDtls12);
     }
 
     public Boolean getSupportsDtls13() {
-        return supportsDtls13;
+        return this.versionSupport.get(VersionSupport.DTLS_13);
     }
 
     public void setSupportsDtls13(Boolean supportsDtls13) {
-        this.supportsDtls13 = supportsDtls13;
+        this.versionSupport.put(VersionSupport.DTLS_13, supportsDtls13);
     }
 
     public List<TokenBindingVersion> getSupportedTokenBindingVersion() {
@@ -590,163 +527,163 @@ public class SiteReport {
     }
 
     public Boolean getSupportsAes() {
-        return supportsAes;
+        return this.cipherSupport.get(CipherSupport.AES);
     }
 
     public void setSupportsAes(Boolean supportsAes) {
-        this.supportsAes = supportsAes;
+        this.cipherSupport.put(CipherSupport.AES, supportsAes);
     }
 
     public Boolean getSupportsCamellia() {
-        return supportsCamellia;
+        return this.cipherSupport.get(CipherSupport.CAMELLIA);
     }
 
     public void setSupportsCamellia(Boolean supportsCamellia) {
-        this.supportsCamellia = supportsCamellia;
+        this.cipherSupport.put(CipherSupport.CAMELLIA, supportsCamellia);
     }
 
     public Boolean getSupportsAria() {
-        return supportsAria;
+        return this.cipherSupport.get(CipherSupport.ARIA);
     }
 
     public void setSupportsAria(Boolean supportsAria) {
-        this.supportsAria = supportsAria;
+        this.cipherSupport.put(CipherSupport.ARIA, supportsAria);
     }
 
     public Boolean getSupportsChacha() {
-        return supportsChacha;
+        return this.cipherSupport.get(CipherSupport.CHACHA);
     }
 
     public void setSupportsChacha(Boolean supportsChacha) {
-        this.supportsChacha = supportsChacha;
+        this.cipherSupport.put(CipherSupport.CHACHA, supportsChacha);
     }
 
     public Boolean getSupportsRsa() {
-        return supportsRsa;
+        return this.cipherSupport.get(CipherSupport.RSA);
     }
 
     public void setSupportsRsa(Boolean supportsRsa) {
-        this.supportsRsa = supportsRsa;
+        this.cipherSupport.put(CipherSupport.RSA, supportsRsa);
     }
 
     public Boolean getSupportsDh() {
-        return supportsDh;
+        return this.cipherSupport.get(CipherSupport.DH);
     }
 
     public void setSupportsDh(Boolean supportsDh) {
-        this.supportsDh = supportsDh;
+        this.cipherSupport.put(CipherSupport.DH, supportsDh);
     }
 
     public Boolean getSupportsEcdh() {
-        return supportsEcdh;
+        return this.cipherSupport.get(CipherSupport.ECDH);
     }
 
     public void setSupportsEcdh(Boolean supportsEcdh) {
-        this.supportsEcdh = supportsEcdh;
+        this.cipherSupport.put(CipherSupport.ECDH, supportsEcdh);
     }
 
     public Boolean getSupportsGost() {
-        return supportsGost;
+        return this.cipherSupport.get(CipherSupport.GOST);
     }
 
     public void setSupportsGost(Boolean supportsGost) {
-        this.supportsGost = supportsGost;
+        this.cipherSupport.put(CipherSupport.GOST, supportsGost);
     }
 
     public Boolean getSupportsSrp() {
-        return supportsSrp;
+        return this.cipherSupport.get(CipherSupport.SRP);
     }
 
     public void setSupportsSrp(Boolean supportsSrp) {
-        this.supportsSrp = supportsSrp;
+        this.cipherSupport.put(CipherSupport.SRP, supportsSrp);
     }
 
     public Boolean getSupportsKerberos() {
-        return supportsKerberos;
+        return this.cipherSupport.get(CipherSupport.KERBEROS);
     }
 
     public void setSupportsKerberos(Boolean supportsKerberos) {
-        this.supportsKerberos = supportsKerberos;
+        this.cipherSupport.put(CipherSupport.KERBEROS, supportsKerberos);
     }
 
     public Boolean getSupportsPskPlain() {
-        return supportsPskPlain;
+        return this.cipherSupport.get(CipherSupport.PSK_PLAIN);
     }
 
     public void setSupportsPskPlain(Boolean supportsPskPlain) {
-        this.supportsPskPlain = supportsPskPlain;
+        this.cipherSupport.put(CipherSupport.PSK_PLAIN, supportsPskPlain);
     }
 
     public Boolean getSupportsPskRsa() {
-        return supportsPskRsa;
+        return this.cipherSupport.get(CipherSupport.PSK_RSA);
     }
 
     public void setSupportsPskRsa(Boolean supportsPskRsa) {
-        this.supportsPskRsa = supportsPskRsa;
+        this.cipherSupport.put(CipherSupport.PSK_RSA, supportsPskRsa);
     }
 
     public Boolean getSupportsPskDhe() {
-        return supportsPskDhe;
+        return this.cipherSupport.get(CipherSupport.PSK_DHE);
     }
 
     public void setSupportsPskDhe(Boolean supportsPskDhe) {
-        this.supportsPskDhe = supportsPskDhe;
+        this.cipherSupport.put(CipherSupport.PSK_DHE, supportsPskDhe);
     }
 
     public Boolean getSupportsPskEcdhe() {
-        return supportsPskEcdhe;
+        return this.cipherSupport.get(CipherSupport.PSK_ECDHE);
     }
 
     public void setSupportsPskEcdhe(Boolean supportsPskEcdhe) {
-        this.supportsPskEcdhe = supportsPskEcdhe;
+        this.cipherSupport.put(CipherSupport.PSK_ECDHE, supportsPskEcdhe);
     }
 
     public Boolean getSupportsFortezza() {
-        return supportsFortezza;
+        return this.cipherSupport.get(CipherSupport.FORTEZZA);
     }
 
     public void setSupportsFortezza(Boolean supportsFortezza) {
-        this.supportsFortezza = supportsFortezza;
+        this.cipherSupport.put(CipherSupport.FORTEZZA, supportsFortezza);
     }
 
     public Boolean getSupportsNewHope() {
-        return supportsNewHope;
+        return this.cipherSupport.get(CipherSupport.NEW_HOPE);
     }
 
     public void setSupportsNewHope(Boolean supportsNewHope) {
-        this.supportsNewHope = supportsNewHope;
+        this.cipherSupport.put(CipherSupport.NEW_HOPE, supportsNewHope);
     }
 
     public Boolean getSupportsEcmqv() {
-        return supportsEcmqv;
+        return this.cipherSupport.get(CipherSupport.ECMQV);
     }
 
     public void setSupportsEcmqv(Boolean supportsEcmqv) {
-        this.supportsEcmqv = supportsEcmqv;
+        this.cipherSupport.put(CipherSupport.ECMQV, supportsEcmqv);
     }
 
     public Boolean getPrefersPfsCiphers() {
-        return prefersPfsCiphers;
+        return this.cipherSupport.get(CipherSupport.PREFERS_PFS_CIPHERS);
     }
 
     public void setPrefersPfsCiphers(Boolean prefersPfsCiphers) {
-        this.prefersPfsCiphers = prefersPfsCiphers;
+        this.cipherSupport.put(CipherSupport.PREFERS_PFS_CIPHERS, prefersPfsCiphers);
     }
 
     public Boolean getSupportsStreamCiphers() {
-        return supportsStreamCiphers;
+        return this.cipherSupport.get(CipherSupport.STREAM_CIPHERS);
     }
 
     public void setSupportsStreamCiphers(Boolean supportsStreamCiphers) {
-        this.supportsStreamCiphers = supportsStreamCiphers;
+        this.cipherSupport.put(CipherSupport.STREAM_CIPHERS, supportsStreamCiphers);
     }
 
     public Boolean getSupportsBlockCiphers() {
-        return supportsBlockCiphers;
+        return this.cipherSupport.get(CipherSupport.BLOCK_CIPHERS);
     }
 
     public void setSupportsBlockCiphers(Boolean supportsBlockCiphers) {
-        this.supportsBlockCiphers = supportsBlockCiphers;
+        this.cipherSupport.put(CipherSupport.BLOCK_CIPHERS, supportsBlockCiphers);
     }
 
     public Boolean getGcmCheck() {
@@ -862,11 +799,11 @@ public class SiteReport {
     }
 
     public Boolean getEnforcesCipherSuiteOrdering() {
-        return enforcesCipherSuiteOrdering;
+        return this.cipherSupport.get(CipherSupport.ENFORCES_CIPHER_SUITE_ORDERING);
     }
 
     public void setEnforcesCipherSuiteOrdering(Boolean enforcesCipherSuiteOrdering) {
-        this.enforcesCipherSuiteOrdering = enforcesCipherSuiteOrdering;
+        this.cipherSupport.put(CipherSupport.ENFORCES_CIPHER_SUITE_ORDERING, enforcesCipherSuiteOrdering);
     }
 
     public List<NamedGroup> getSupportedNamedGroups() {
@@ -958,163 +895,163 @@ public class SiteReport {
     }
 
     public Boolean getCertificateExpired() {
-        return certificateExpired;
+        return this.certQualities.get(CertificateQualities.EXPIRED);
     }
 
     public void setCertificateExpired(Boolean certificateExpired) {
-        this.certificateExpired = certificateExpired;
+        this.certQualities.put(CertificateQualities.EXPIRED, certificateExpired);
     }
 
     public Boolean getCertificateNotYetValid() {
-        return certificateNotYetValid;
+        return this.certQualities.get(CertificateQualities.NOT_YET_VALID);
     }
 
     public void setCertificateNotYetValid(Boolean certificateNotYetValid) {
-        this.certificateNotYetValid = certificateNotYetValid;
+        this.certQualities.put(CertificateQualities.NOT_YET_VALID, certificateNotYetValid);
     }
 
     public Boolean getCertificateHasWeakHashAlgorithm() {
-        return certificateHasWeakHashAlgorithm;
+        return this.certQualities.get(CertificateQualities.WEAK_HASH_ALGORITHM);
     }
 
     public void setCertificateHasWeakHashAlgorithm(Boolean certificateHasWeakHashAlgorithm) {
-        this.certificateHasWeakHashAlgorithm = certificateHasWeakHashAlgorithm;
+        this.certQualities.put(CertificateQualities.WEAK_HASH_ALGORITHM, certificateHasWeakHashAlgorithm);
     }
 
     public Boolean getCertificateHasWeakSignAlgorithm() {
-        return certificateHasWeakSignAlgorithm;
+        return this.certQualities.get(CertificateQualities.WEAK_SIGN_ALGORITHM);
     }
 
     public void setCertificateHasWeakSignAlgorithm(Boolean certificateHasWeakSignAlgorithm) {
-        this.certificateHasWeakSignAlgorithm = certificateHasWeakSignAlgorithm;
+        this.certQualities.put(CertificateQualities.WEAK_SIGN_ALGORITHM, certificateHasWeakSignAlgorithm);
     }
 
     public Boolean getCertificateMachtesDomainName() {
-        return certificateMachtesDomainName;
+        return this.certQualities.get(CertificateQualities.MATCHES_DOMAIN_NAME);
     }
 
     public void setCertificateMachtesDomainName(Boolean certificateMachtesDomainName) {
-        this.certificateMachtesDomainName = certificateMachtesDomainName;
+        this.certQualities.put(CertificateQualities.MATCHES_DOMAIN_NAME, certificateMachtesDomainName);
     }
 
     public Boolean getCertificateIsTrusted() {
-        return certificateIsTrusted;
+        return this.certQualities.get(CertificateQualities.IS_TRUSTED);
     }
 
     public void setCertificateIsTrusted(Boolean certificateIsTrusted) {
-        this.certificateIsTrusted = certificateIsTrusted;
+        this.certQualities.put(CertificateQualities.IS_TRUSTED, certificateIsTrusted);
     }
 
     public Boolean getCertificateKeyIsBlacklisted() {
-        return certificateKeyIsBlacklisted;
+        return this.certQualities.get(CertificateQualities.KEY_IS_BLACKLISTED);
     }
 
     public void setCertificateKeyIsBlacklisted(Boolean certificateKeyIsBlacklisted) {
-        this.certificateKeyIsBlacklisted = certificateKeyIsBlacklisted;
+        this.certQualities.put(CertificateQualities.KEY_IS_BLACKLISTED, certificateKeyIsBlacklisted);
     }
 
     public Boolean getSupportsNullCiphers() {
-        return supportsNullCiphers;
+        return this.cipherSupport.get(CipherSupport.NULL_CIPHERS);
     }
 
     public void setSupportsNullCiphers(Boolean supportsNullCiphers) {
-        this.supportsNullCiphers = supportsNullCiphers;
+        this.cipherSupport.put(CipherSupport.NULL_CIPHERS, supportsNullCiphers);
     }
 
     public Boolean getSupportsAnonCiphers() {
-        return supportsAnonCiphers;
+        return this.cipherSupport.get(CipherSupport.ANON_CIPHERS);
     }
 
     public void setSupportsAnonCiphers(Boolean supportsAnonCiphers) {
-        this.supportsAnonCiphers = supportsAnonCiphers;
+        this.cipherSupport.put(CipherSupport.ANON_CIPHERS, supportsAnonCiphers);
     }
 
     public Boolean getSupportsExportCiphers() {
-        return supportsExportCiphers;
+        return this.cipherSupport.get(CipherSupport.EXPORT_CIPHERS);
     }
 
     public void setSupportsExportCiphers(Boolean supportsExportCiphers) {
-        this.supportsExportCiphers = supportsExportCiphers;
+        this.cipherSupport.put(CipherSupport.EXPORT_CIPHERS, supportsExportCiphers);
     }
 
     public Boolean getSupportsDesCiphers() {
-        return supportsDesCiphers;
+        return this.cipherSupport.get(CipherSupport.DES_CIPHERS);
     }
 
     public void setSupportsDesCiphers(Boolean supportsDesCiphers) {
-        this.supportsDesCiphers = supportsDesCiphers;
+        this.cipherSupport.put(CipherSupport.DES_CIPHERS, supportsDesCiphers);
     }
 
     public Boolean getSupportsSeedCiphers() {
-        return supportsSeedCiphers;
+        return this.cipherSupport.get(CipherSupport.SEED_CIPHERS);
     }
 
     public void setSupportsSeedCiphers(Boolean supportsSeedCiphers) {
-        this.supportsSeedCiphers = supportsSeedCiphers;
+        this.cipherSupport.put(CipherSupport.SEED_CIPHERS, supportsSeedCiphers);
     }
 
     public Boolean getSupportsIdeaCiphers() {
-        return supportsIdeaCiphers;
+        return this.cipherSupport.get(CipherSupport.IDEA_CIPHERS);
     }
 
     public void setSupportsIdeaCiphers(Boolean supportsIdeaCiphers) {
-        this.supportsIdeaCiphers = supportsIdeaCiphers;
+        this.cipherSupport.put(CipherSupport.IDEA_CIPHERS, supportsIdeaCiphers);
     }
 
     public Boolean getSupportsRc2Ciphers() {
-        return supportsRc2Ciphers;
+        return this.cipherSupport.get(CipherSupport.RC2_CIPHERS);
     }
 
     public void setSupportsRc2Ciphers(Boolean supportsRc2Ciphers) {
-        this.supportsRc2Ciphers = supportsRc2Ciphers;
+        this.cipherSupport.put(CipherSupport.RC2_CIPHERS, supportsRc2Ciphers);
     }
 
     public Boolean getSupportsRc4Ciphers() {
-        return supportsRc4Ciphers;
+        return this.cipherSupport.get(CipherSupport.RC4_CIPHERS);
     }
 
     public void setSupportsRc4Ciphers(Boolean supportsRc4Ciphers) {
-        this.supportsRc4Ciphers = supportsRc4Ciphers;
+        this.cipherSupport.put(CipherSupport.RC4_CIPHERS, supportsRc4Ciphers);
     }
 
     public Boolean getSupportsTrippleDesCiphers() {
-        return supportsTrippleDesCiphers;
+        return this.cipherSupport.get(CipherSupport.TRIPLE_DES_CIPHERS);
     }
 
     public void setSupportsTrippleDesCiphers(Boolean supportsTrippleDesCiphers) {
-        this.supportsTrippleDesCiphers = supportsTrippleDesCiphers;
+        this.cipherSupport.put(CipherSupport.TRIPLE_DES_CIPHERS, supportsTrippleDesCiphers);
     }
 
     public Boolean getSupportsPostQuantumCiphers() {
-        return supportsPostQuantumCiphers;
+        return this.cipherSupport.get(CipherSupport.POST_QUANTUM_CIPHERS);
     }
 
     public void setSupportsPostQuantumCiphers(Boolean supportsPostQuantumCiphers) {
-        this.supportsPostQuantumCiphers = supportsPostQuantumCiphers;
+        this.cipherSupport.put(CipherSupport.POST_QUANTUM_CIPHERS, supportsPostQuantumCiphers);
     }
 
     public Boolean getSupportsAeadCiphers() {
-        return supportsAeadCiphers;
+        return this.cipherSupport.get(CipherSupport.AEAD_CIPHERS);
     }
 
     public void setSupportsAeadCiphers(Boolean supportsAeadCiphers) {
-        this.supportsAeadCiphers = supportsAeadCiphers;
+        this.cipherSupport.put(CipherSupport.AEAD_CIPHERS, supportsAeadCiphers);
     }
 
     public Boolean getSupportsPfsCiphers() {
-        return supportsPfsCiphers;
+        return this.cipherSupport.get(CipherSupport.PFS_CIPHERS);
     }
 
     public void setSupportsPfsCiphers(Boolean supportsPfsCiphers) {
-        this.supportsPfsCiphers = supportsPfsCiphers;
+        this.cipherSupport.put(CipherSupport.PFS_CIPHERS, supportsPfsCiphers);
     }
 
     public Boolean getSupportsOnlyPfsCiphers() {
-        return supportsOnlyPfsCiphers;
+        return this.cipherSupport.get(CipherSupport.ONLY_PFS_CIPHERS);
     }
 
     public void setSupportsOnlyPfsCiphers(Boolean supportsOnlyPfsCiphers) {
-        this.supportsOnlyPfsCiphers = supportsOnlyPfsCiphers;
+        this.cipherSupport.put(CipherSupport.ONLY_PFS_CIPHERS, supportsOnlyPfsCiphers);
     }
 
     public Boolean getSupportsSessionTicket() {
@@ -1214,27 +1151,27 @@ public class SiteReport {
     }
 
     public Boolean getVersionIntolerance() {
-        return versionIntolerance;
+        return this.commonBugs.get(CommonBugs.VERSION_INTOLERANCE);
     }
 
     public void setVersionIntolerance(Boolean versionIntolerance) {
-        this.versionIntolerance = versionIntolerance;
+        this.commonBugs.put(CommonBugs.VERSION_INTOLERANCE, versionIntolerance);
     }
 
     public Boolean getExtensionIntolerance() {
-        return extensionIntolerance;
+        return this.commonBugs.get(CommonBugs.EXTENSION_INTOLERANCE);
     }
 
     public void setExtensionIntolerance(Boolean extensionIntolerance) {
-        this.extensionIntolerance = extensionIntolerance;
+        this.commonBugs.put(CommonBugs.EXTENSION_INTOLERANCE, extensionIntolerance);
     }
 
     public Boolean getCipherSuiteIntolerance() {
-        return cipherSuiteIntolerance;
+        return this.commonBugs.get(CommonBugs.CIPHER_SUITE_INTOLERANCE);
     }
 
     public void setCipherSuiteIntolerance(Boolean cipherSuiteIntolerance) {
-        this.cipherSuiteIntolerance = cipherSuiteIntolerance;
+        this.commonBugs.put(CommonBugs.CIPHER_SUITE_INTOLERANCE, cipherSuiteIntolerance);
     }
 
     public Boolean getGcmReuse() {
@@ -1262,11 +1199,11 @@ public class SiteReport {
     }
 
     public Boolean getSupportsStaticEcdh() {
-        return supportsStaticEcdh;
+        return this.cipherSupport.get(CipherSupport.STATIC_ECDH);
     }
 
     public void setSupportsStaticEcdh(Boolean supportsStaticEcdh) {
-        this.supportsStaticEcdh = supportsStaticEcdh;
+        this.cipherSupport.put(CipherSupport.STATIC_ECDH, supportsStaticEcdh);
     }
 
     public boolean isNoColour() {
@@ -1388,5 +1325,108 @@ public class SiteReport {
 
     public void setSupportsHpkpReportOnly(Boolean supportsHpkpReportOnly) {
         this.supportsHpkpReportOnly = supportsHpkpReportOnly;
+    }
+
+    /**
+     * Contains identifiers for the Common Bugs Dictionary.
+     */
+    private static class CommonBugs {
+        static String EXTENSION_INTOLERANCE = "extensionIntolerance"; //does it handle unknown extenstions correctly?
+        static String VERSION_INTOLERANCE = "versionIntolerance"; //does it handle unknown versions correctly?
+        static String CIPHER_SUITE_INTOLERANCE = "cipherSuiteIntolerance"; //does it handle unknown ciphersuites correctly?
+        static String CIPHER_SUITE_LENGTH_INTOLERANCE = "cipherSuiteLengthIntolerance512"; //does it handle long ciphersuite length values correctly?
+        static String COMPRESSION_INTOLERANCE = "compressionIntolerance"; //does it handle unknown compression algorithms correctly
+        static String ALPN_INTOLERANCE = "alpnIntolerance"; //does it handle unknown alpn strings correctly?
+        static String CLIENT_HELLO_LENGTH_INTOLERANCE = "clientHelloLengthIntolerance"; // 256 - 511 <-- ch should be bigger than this
+        static String NAMED_GROUP_INTOLERANT = "namedGroupIntolerant"; // does it handle unknown groups correctly
+        static String EMPTY_LAST_EXTENSION_INTOLERANCE = "emptyLastExtensionIntolerance"; //does it break on empty last extension
+        static String NAMED_SIGNATURE_AND_HASH_ALGORITHM_INTOLERANCE = "namedSignatureAndHashAlgorithmIntolerance"; // does it handle signature and hash algorithms correctly
+        static String MAX_LENGTH_CLIENT_HELLO_INTOLERANT = "maxLengthClientHelloIntolerant"; // server does not like really big client hello messages
+        static String ONLY_SECOND_CIPHERSUITE_BYTE_EVALUATED = "onlySecondCiphersuiteByteEvaluated"; //is only the second byte of the ciphersuite evaluated
+        static String IGNORES_CIPHER_SUITE_OFFERING = "ignoresCipherSuiteOffering"; //does it ignore the offered ciphersuites
+        static String REFLECTS_CIPHER_SUITE_OFFERING = "reflectsCipherSuiteOffering"; //does it ignore the offered ciphersuites
+        static String IGNORES_OFFERED_NAMED_GROUPS = "ignoresOfferedNamedGroups"; //does it ignore the offered named groups
+        static String IGNORES_OFFERED_SIGNATURE_AND_HASH_ALGORITHMS = "ignoresOfferedSignatureAndHashAlgorithms"; //does it ignore the sig hash algorithms
+    }
+
+    /**
+     * Contains identifiers for the Supported Versions Dictionary.
+     */
+    private static class VersionSupport {
+        static String SSL_2 = "supportsSsl2";
+        static String SSL_3 = "supportsSsl3";
+        static String TLS_10 = "supportsTls10";
+        static String TLS_11 = "supportsTls11";
+        static String TLS_12 = "supportsTls12";
+        static String TLS_13 = "supportsTls13";
+        static String TLS_13_DRAFT_14 = "supportsTls13Draft14";
+        static String TLS_13_DRAFT_15 = "supportsTls13Draft15";
+        static String TLS_13_DRAFT_16 = "supportsTls13Draft16";
+        static String TLS_13_DRAFT_17 = "supportsTls13Draft17";
+        static String TLS_13_DRAFT_18 = "supportsTls13Draft18";
+        static String TLS_13_DRAFT_19 = "supportsTls13Draft19";
+        static String TLS_13_DRAFT_20 = "supportsTls13Draft20";
+        static String TLS_13_DRAFT_21 = "supportsTls13Draft21";
+        static String TLS_13_DRAFT_22 = "supportsTls13Draft22";
+        static String TLS_13_DRAFT_23 = "supportsTls13Draft23";
+        static String TLS_13_DRAFT_24 = "supportsTls13Draft24";
+        static String TLS_13_DRAFT_25 = "supportsTls13Draft25";
+        static String TLS_13_DRAFT_26 = "supportsTls13Draft26";
+        static String TLS_13_DRAFT_27 = "supportsTls13Draft27";
+        static String TLS_13_DRAFT_28 = "supportsTls13Draft28";
+        static String DTLS_10 = "supportsDtls10";
+        static String DTLS_12 = "supportsDtls12";
+        static String DTLS_13 = "supportsDtls13";
+    }
+
+    /**
+     * Contains identifiers for the Certificate Qualities Dictionary.
+     */
+    private static class CertificateQualities {
+        static String EXPIRED = "certificateExpired";
+        static String NOT_YET_VALID = "certificateNotYetValid";
+        static String WEAK_HASH_ALGORITHM = "certificateHasWeakHashAlgorithm";
+        static String WEAK_SIGN_ALGORITHM = "certificateHasWeakSignAlgorithm";
+        static String MATCHES_DOMAIN_NAME = "certificateMatchesDomainName";
+        static String IS_TRUSTED = "certificateIsTrusted";
+        static String KEY_IS_BLACKLISTED = "certificateKeyIsBlacklisted";
+    }
+
+    private static class CipherSupport {
+        static String NULL_CIPHERS = "supportsNullCiphers";
+        static String ANON_CIPHERS = "supportsAnonCiphers";
+        static String EXPORT_CIPHERS = "supportsExportCiphers";
+        static String DES_CIPHERS = "supportsDesCiphers";
+        static String SEED_CIPHERS = "supportsSeedCiphers";
+        static String IDEA_CIPHERS = "supportsIdeaCiphers";
+        static String RC2_CIPHERS = "supportsRc2Ciphers";
+        static String RC4_CIPHERS = "supportsRc4Ciphers";
+        static String TRIPLE_DES_CIPHERS = "supportsTrippleDesCiphers";
+        static String POST_QUANTUM_CIPHERS = "supportsPostQuantumCiphers";
+        static String AEAD_CIPHERS = "supportsAeadCiphers";
+        static String PFS_CIPHERS = "supportsPfsCiphers";
+        static String ONLY_PFS_CIPHERS = "supportsOnlyPfsCiphers";
+        static String ENFORCES_CIPHER_SUITE_ORDERING = "enforcesCipherSuiteOrdering";
+        static String AES = "supportsAes";
+        static String CAMELLIA = "supportsCamellia";
+        static String ARIA = "supportsAria";
+        static String CHACHA = "supportsChacha";
+        static String RSA = "supportsRsa";
+        static String DH = "supportsDh";
+        static String ECDH = "supportsEcdh";
+        static String STATIC_ECDH = "supportsStaticEcdh";
+        static String GOST = "supportsGost";
+        static String SRP = "supportsSrp";
+        static String KERBEROS = "supportsKerberos";
+        static String PSK_PLAIN = "supportsPskPlain";
+        static String PSK_RSA = "supportsPskRsa";
+        static String PSK_DHE = "supportsPskDhe";
+        static String PSK_ECDHE = "supportsPskEcdhe";
+        static String FORTEZZA = "supportsFortezza";
+        static String NEW_HOPE = "supportsNewHope";
+        static String ECMQV = "supportsEcmqv";
+        static String PREFERS_PFS_CIPHERS = "prefersPfsCiphers";
+        static String STREAM_CIPHERS = "supportsStreamCiphers";
+        static String BLOCK_CIPHERS = "supportsBlockCiphers";
     }
 }
