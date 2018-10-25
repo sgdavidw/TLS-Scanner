@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package de.rub.nds.tlsscanner.probe;
 
 import de.rub.nds.tlsattacker.core.config.Config;
@@ -22,16 +17,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-/**
- *
- * @author robert
- */
-public class RenegotiationProbe extends TlsProbe {
+public class ScsvProbe extends TlsProbe {
 
     private Set<CipherSuite> supportedSuites;
-    private boolean supportsRenegotiationExtension;
+    private List<ProtocolVersion> supportedVersions;
 
-    public RenegotiationProbe(ScannerConfig scannerConfig, ParallelExecutor parallelExecutor) {
+    public ScsvProbe(ScannerConfig scannerConfig, ParallelExecutor parallelExecutor) {
         super(parallelExecutor, ProbeType.RENEGOTIATION, scannerConfig, 0);
     }
 
@@ -53,8 +44,9 @@ public class RenegotiationProbe extends TlsProbe {
         tlsConfig.setQuickReceive(true);
         List<CipherSuite> ciphersuites = new LinkedList<>();
         ciphersuites.addAll(supportedSuites);
+        ciphersuites.add(CipherSuite.TLS_FALLBACK_SCSV);
         //TODO this can fail in some rare occasions
-        tlsConfig.setDefaultClientSupportedCiphersuites(ciphersuites.get(0));
+        tlsConfig.setDefaultClientSupportedCiphersuites(ciphersuites);
         tlsConfig.setDefaultSelectedCipherSuite(tlsConfig.getDefaultClientSupportedCiphersuites().get(0));
         tlsConfig.setHighestProtocolVersion(ProtocolVersion.TLS12);
         tlsConfig.setEnforceSettings(false);
@@ -74,30 +66,11 @@ public class RenegotiationProbe extends TlsProbe {
         return state.getWorkflowTrace().executedAsPlanned();
     }
 
-    private boolean supportsInsecureClientRenegotiation() {
-        Config tlsConfig = getScannerConfig().createConfig();
-        tlsConfig.setQuickReceive(true);
-        List<CipherSuite> ciphersuites = new LinkedList<>();
-        ciphersuites.addAll(supportedSuites);
-        //TODO this can fail in some rare occasions
-        tlsConfig.setDefaultClientSupportedCiphersuites(ciphersuites.get(0));
-        tlsConfig.setDefaultSelectedCipherSuite(tlsConfig.getDefaultClientSupportedCiphersuites().get(0));
-        tlsConfig.setHighestProtocolVersion(ProtocolVersion.TLS12);
-        tlsConfig.setEnforceSettings(false);
-        tlsConfig.setEarlyStop(true);
-        tlsConfig.setStopRecievingAfterFatal(true);
-        tlsConfig.setStopActionsAfterFatal(true);
-        tlsConfig.setWorkflowTraceType(WorkflowTraceType.CLIENT_RENEGOTIATION_WITHOUT_RESUMPTION);
-        tlsConfig.setAddECPointFormatExtension(true);
-        tlsConfig.setAddEllipticCurveExtension(true);
-        tlsConfig.setAddServerNameIndicationExtension(true);
-        tlsConfig.setAddRenegotiationInfoExtension(false);
-        tlsConfig.setAddSignatureAndHashAlgorithmsExtension(true);
-        tlsConfig.setDefaultClientNamedGroups(NamedGroup.getImplemented());
-        tlsConfig.getDefaultClientNamedGroups().remove(NamedGroup.ECDH_X25519);
-        State state = new State(tlsConfig);
-        executeState(state);
-        return state.getWorkflowTrace().executedAsPlanned();
+    private ProtocolVersion getSmallestSupportedVersion() {
+        for(ProtocolVersion version : supportedVersions)
+        {
+            
+        }
     }
 
     @Override
@@ -108,7 +81,7 @@ public class RenegotiationProbe extends TlsProbe {
     @Override
     public void adjustConfig(SiteReport report) {
         supportedSuites = report.getCipherSuites();
-        supportsRenegotiationExtension = report.getSupportsSecureRenegotiation();
+        supportedVersions = report.getVersions();
     }
 
     @Override
