@@ -128,7 +128,7 @@ public class TlsScanner {
         phaseOneTestList.add(new ExtensionProbe(config, parallelExecutor));
         phaseOneTestList.add(new Tls13Probe(config, parallelExecutor));
         phaseOneTestList.add(new TokenbindingProbe(config, parallelExecutor));
-        phaseOneTestList.add(new HttpHeaderProbe(config, parallelExecutor));
+        //phaseOneTestList.add(new HttpHeaderProbe(config, parallelExecutor));
         phaseTwoTestList.add(new ResumptionProbe(config, parallelExecutor));
         phaseTwoTestList.add(new RenegotiationProbe(config, parallelExecutor));
         phaseTwoTestList.add(new HeartbleedProbe(config, parallelExecutor));

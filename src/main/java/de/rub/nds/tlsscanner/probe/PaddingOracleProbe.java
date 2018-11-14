@@ -63,9 +63,9 @@ public class PaddingOracleProbe extends TlsProbe {
         List<PaddingOracleTestResult> testResultList = new LinkedList<>();
         PaddingRecordGeneratorType recordGeneratorType;
         if (scannerConfig.getScanDetail() == ScannerDetail.NORMAL) {
-            recordGeneratorType = PaddingRecordGeneratorType.SHORT;
+            recordGeneratorType = PaddingRecordGeneratorType.MEDIUM;
         } else {
-            recordGeneratorType = PaddingRecordGeneratorType.SHORT;
+            recordGeneratorType = PaddingRecordGeneratorType.MEDIUM;
         }
 
         List<PaddingVectorGeneratorType> vectorTypeList = new LinkedList<>();
@@ -132,10 +132,13 @@ public class PaddingOracleProbe extends TlsProbe {
                 }
             }
         }
-        if (vulnerable && recordGeneratorType != PaddingRecordGeneratorType.SHORT) {
+        if (vulnerable) {
+            System.out.println("VULNERABLE");
+            System.out.println("VULNERABLE");
+            System.out.println("VULNERABLE");
             testResultList.clear();
             //Perform full scan
-            recordGeneratorType = PaddingRecordGeneratorType.SHORT;
+            recordGeneratorType = PaddingRecordGeneratorType.MEDIUM;
             for (ProtocolVersion version : versionList) {
 
                 VersionSuiteListPair suitePairList = null;
@@ -170,11 +173,6 @@ public class PaddingOracleProbe extends TlsProbe {
     private PaddingOracleTestResult createTestResult(ProtocolVersion version, CipherSuite suite, PaddingOracleCommandConfig paddingOracleConfig) {
 
         Boolean result;
-        try {
-            Thread.currentThread().sleep(10000);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(PaddingOracleProbe.class.getName()).log(Level.SEVERE, null, ex);
-        }
         PaddingOracleAttacker attacker = new PaddingOracleAttacker(paddingOracleConfig, scannerConfig.createConfig(), getParallelExecutor());
         boolean hasError = false;
         try {
