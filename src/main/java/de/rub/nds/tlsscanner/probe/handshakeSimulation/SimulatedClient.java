@@ -8,14 +8,20 @@ package de.rub.nds.tlsscanner.probe.handshakeSimulation;
 import de.rub.nds.tlsattacker.core.constants.CipherSuite;
 import de.rub.nds.tlsattacker.core.constants.CompressionMethod;
 import de.rub.nds.tlsattacker.core.constants.ProtocolVersion;
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 
-public class SimulatedClient {
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
+public class SimulatedClient implements Serializable {
 
-    private final String type;
-    private final String version;
-    private final boolean defaultVersion;
+    private String type;
+    private String version;
+    private boolean defaultVersion;
     //To set in HandshakeSimulationProbe
     private Boolean receivedServerHello = null;
     private Boolean receivedCertificate = null;
@@ -43,6 +49,9 @@ public class SimulatedClient {
     private Boolean connectionRfc7918Secure = null;
     private List<String> failReasons = null;
     private List<String> insecureReasons = null;
+    
+    public SimulatedClient() {
+    }
 
     public SimulatedClient(String type, String version, boolean defaultVersion) {
         this.type = type;
