@@ -24,7 +24,7 @@ import java.util.List;
 public class MainEvaluation {
 
     private static final String FOLDER = "Evaluation_Scans";
-    private static final String LIST = "top-1m-test.csv";
+    private static final String LIST = "top-1m.csv";
     private static final int NUMBER_OF_WEBSITES = 20;
 
     private static GeneralDelegate generalDelegate = null;
