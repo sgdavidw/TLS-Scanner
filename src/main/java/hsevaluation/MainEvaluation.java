@@ -31,9 +31,9 @@ public class MainEvaluation {
 
     public static void main(String args[]) {
 
-        System.out.println("");
+        System.out.println("##############################################################");
         System.out.println("Starting Evaluation");
-        System.out.println("");
+        System.out.println("##############################################################");
 
         generalDelegate = new GeneralDelegate();
         clientDelegate = new ClientDelegate();
@@ -51,7 +51,7 @@ public class MainEvaluation {
         long time;
 
         System.out.println("");
-        System.out.println("Extracting Handshake Simulation Reports");
+        System.out.println("Extracting Handshake Simulation Reports...");
         System.out.println("");
         for (String url : urls) {
             hSResFile = new File(FOLDER + "/" + url + ".xml");
@@ -73,7 +73,7 @@ public class MainEvaluation {
         List<HSRes> hSResList = new LinkedList<>();
 
         System.out.println("");
-        System.out.println("Evaluating Handshake Simulation Reports");
+        System.out.println("Evaluating Handshake Simulation Reports...");
         System.out.println("");
         for (String url : urls) {
             hSResFile = new File(FOLDER + "/" + url + ".xml");
@@ -82,11 +82,17 @@ public class MainEvaluation {
                 hSResList.add(HSResIO.read(hSResFile));
             }
         }
-
+        
+        System.out.println("");
+        System.out.println("##############################################################");
+        System.out.println("Evaluation Results");
+        System.out.println("##############################################################");
+        
         performEvaluation(hSResList);
 
-        System.out.println("");
+        System.out.println("##############################################################");
         System.out.println("Evaluation Completed");
+        System.out.println("##############################################################");
     }
 
     private static void performEvaluation(List<HSRes> hSResList) {
@@ -96,9 +102,12 @@ public class MainEvaluation {
                 supportsTlsCounter++;
             }
         }
+        System.out.println("");
         System.out.println("Tested Websites: " + hSResList.size());
+        System.out.println("");
         System.out.println("Support TLS: " + supportsTlsCounter);
         System.out.println("Do not support TLS: " + (hSResList.size() - supportsTlsCounter));
+        System.out.println("");
     }
 
     private static SiteReport getReportFrom(String host) {
