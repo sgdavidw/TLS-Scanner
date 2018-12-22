@@ -25,6 +25,7 @@ public class MainEvaluation {
 
     private static final String FOLDER = "Evaluation_Scans";
     private static final String LIST = "top-1m-test.csv";
+    private static final int NUMBER_OF_WEBSITES = 20;
 
     private static GeneralDelegate generalDelegate = null;
     private static ClientDelegate clientDelegate = null;
@@ -82,12 +83,12 @@ public class MainEvaluation {
                 hSResList.add(HSResIO.read(hSResFile));
             }
         }
-        
+
         System.out.println("");
         System.out.println("##############################################################");
         System.out.println("Evaluation Results");
         System.out.println("##############################################################");
-        
+
         performEvaluation(hSResList);
 
         System.out.println("##############################################################");
@@ -139,13 +140,14 @@ public class MainEvaluation {
     private static List<String> readListCsv(File file) {
         String line = "";
         String cvsSplitBy = ",";
-        List<String> urls = null;
+        List<String> urls = new LinkedList<>();
+        int counter = 1;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            urls = new LinkedList<>();
-            while ((line = br.readLine()) != null) {
+            while ((line = br.readLine()) != null && counter <= NUMBER_OF_WEBSITES) {
                 String[] url = line.split(cvsSplitBy);
                 System.out.println(url[0] + ", " + url[1]);
                 urls.add(url[1]);
+                counter++;
             }
         } catch (IOException e) {
             e.printStackTrace();
