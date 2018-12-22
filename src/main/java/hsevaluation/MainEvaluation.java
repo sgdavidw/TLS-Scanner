@@ -34,34 +34,71 @@ public class MainEvaluation {
         System.out.println("");
         System.out.println("Starting Evaluation");
         System.out.println("");
-        
+
         generalDelegate = new GeneralDelegate();
         clientDelegate = new ClientDelegate();
 
+        System.out.println("Creating Folder '" + FOLDER + "'...");
         createFolder(FOLDER);
-        List<String> urls = loadListCsv(new File(LIST));
+
+        File urlFile = new File(LIST);
+        System.out.println("Reading '" + urlFile + "'...");
+        List<String> urls = readListCsv(urlFile);
 
         SiteReport report;
         HSRes hSRes;
         File hSResFile;
         long time;
 
+        System.out.println("");
+        System.out.println("Extracting Handshake Simulation Reports");
+        System.out.println("");
         for (String url : urls) {
-            System.out.println("");
-            System.out.println("Evaluating '" + url + "'");
-            System.out.println("");
-            time = System.currentTimeMillis();
-            report = getReportFrom(url);
-            hSRes = createHSRes(report);
             hSResFile = new File(FOLDER + "/" + url + ".xml");
-            System.out.println("Writing File '" + hSResFile + "', this may take some time...");
-            HSResIO.write(hSRes, hSResFile);
-            System.out.println("");
-            System.out.println("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
-            System.out.println("");
+            if (!hSResFile.exists()) {
+                System.out.println("");
+                System.out.println("Extracting '" + url + "'");
+                System.out.println("");
+                time = System.currentTimeMillis();
+                report = getReportFrom(url);
+                hSRes = createHSRes(report);
+                System.out.println("Writing File '" + hSResFile + "', this may take some time...");
+                HSResIO.write(hSRes, hSResFile);
+                System.out.println("");
+                System.out.println("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
+                System.out.println("");
+            }
         }
+
+        List<HSRes> hSResList = new LinkedList<>();
+
+        System.out.println("");
+        System.out.println("Evaluating Handshake Simulation Reports");
+        System.out.println("");
+        for (String url : urls) {
+            hSResFile = new File(FOLDER + "/" + url + ".xml");
+            if (hSResFile.exists()) {
+                System.out.println("Reading File '" + hSResFile + "'...");
+                hSResList.add(HSResIO.read(hSResFile));
+            }
+        }
+
+        performEvaluation(hSResList);
+
         System.out.println("");
         System.out.println("Evaluation Completed");
+    }
+
+    private static void performEvaluation(List<HSRes> hSResList) {
+        int supportsTlsCounter = 0;
+        for (HSRes hSRes : hSResList) {
+            if (hSRes.getSupportsSslTls()) {
+                supportsTlsCounter++;
+            }
+        }
+        System.out.println("Tested Websites: " + hSResList.size());
+        System.out.println("Support TLS: " + supportsTlsCounter);
+        System.out.println("Do not support TLS: " + (hSResList.size() - supportsTlsCounter));
     }
 
     private static SiteReport getReportFrom(String host) {
@@ -90,8 +127,7 @@ public class MainEvaluation {
         return report;
     }
 
-    private static List<String> loadListCsv(File file) {
-        System.out.println("Loading '" + file + "' ...");
+    private static List<String> readListCsv(File file) {
         String line = "";
         String cvsSplitBy = ",";
         List<String> urls = null;
@@ -111,6 +147,7 @@ public class MainEvaluation {
     private static HSRes createHSRes(SiteReport report) {
         HSRes hSRes = new HSRes();
         hSRes.createHSRes(report.getHost());
+        hSRes.setSupportsSslTls(report.getSupportsSslTls());
         hSRes.setHandshakeSuccessfulCounter(report.getHandshakeSuccessfulCounter());
         hSRes.setHandshakeFailedCounter(report.getHandshakeFailedCounter());
         hSRes.setConnectionRfc7918SecureCounter(report.getConnectionRfc7918SecureCounter());
@@ -120,7 +157,6 @@ public class MainEvaluation {
     }
 
     private static void createFolder(String path) {
-        System.out.println("Creating Folder '" + path + "' ...");
         File directory = new File(path);
         directory.mkdir();
     }
