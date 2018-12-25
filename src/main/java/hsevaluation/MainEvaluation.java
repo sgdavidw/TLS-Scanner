@@ -25,7 +25,9 @@ public class MainEvaluation {
 
     private static final String FOLDER = "Evaluation_Scans";
     private static final String LIST = "top-1m.csv";
-    private static final int NUMBER_OF_WEBSITES = 20;
+    private static final int NUMBER_OF_WEBSITES = 10;
+    private static final int THREADS = 10;
+    private static final int AGGRO = 18;
 
     private static GeneralDelegate generalDelegate = null;
     private static ClientDelegate clientDelegate = null;
@@ -54,6 +56,7 @@ public class MainEvaluation {
         System.out.println("");
         System.out.println("Extracting Handshake Simulation Reports...");
         System.out.println("");
+        
         for (String url : urls) {
             hSResFile = new File(FOLDER + "/" + url + ".xml");
             if (!hSResFile.exists()) {
@@ -116,8 +119,8 @@ public class MainEvaluation {
         System.out.println("Getting Report of '" + host + "':");
         clientDelegate.setHost(host);
         ScannerConfig config = new ScannerConfig(generalDelegate, clientDelegate);
-        config.setThreads(10);
-        config.setAggroLevel(18);
+        config.setThreads(THREADS);
+        config.setAggroLevel(AGGRO);
         config.setScanDetail(ScannerDetail.ALL);
         try {
             TlsScanner scanner = new TlsScanner(config);

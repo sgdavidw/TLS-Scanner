@@ -10,6 +10,7 @@ import de.rub.nds.tlsattacker.core.config.Config;
 import de.rub.nds.tlsattacker.core.constants.AlgorithmResolver;
 import de.rub.nds.tlsattacker.core.constants.CipherSuite;
 import de.rub.nds.tlsattacker.core.constants.HandshakeMessageType;
+import de.rub.nds.tlsattacker.core.constants.KeyExchangeAlgorithm;
 import de.rub.nds.tlsattacker.core.protocol.message.ClientHelloMessage;
 import de.rub.nds.tlsattacker.core.protocol.message.ServerHelloDoneMessage;
 import de.rub.nds.tlsattacker.core.protocol.message.extension.ExtensionMessage;
@@ -23,14 +24,12 @@ import de.rub.nds.tlsattacker.core.workflow.action.SendAction;
 import de.rub.nds.tlsscanner.config.ScannerConfig;
 import de.rub.nds.tlsscanner.constants.ProbeType;
 import de.rub.nds.tlsscanner.probe.handshakeSimulation.TlsClientConfig;
-import de.rub.nds.tlsscanner.probe.handshakeSimulation.TlsClientConfigIO;
 import de.rub.nds.tlsscanner.probe.handshakeSimulation.SimulatedClient;
 import static de.rub.nds.tlsscanner.probe.TlsProbe.LOGGER;
 import de.rub.nds.tlsscanner.probe.handshakeSimulation.ConfigFileList;
 import de.rub.nds.tlsscanner.report.SiteReport;
 import de.rub.nds.tlsscanner.report.result.HandshakeSimulationResult;
 import de.rub.nds.tlsscanner.report.result.ProbeResult;
-import java.io.File;
 import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
@@ -99,15 +98,15 @@ public class HandshakeSimulationProbe extends TlsProbe {
         evaluateReceivedMessages(state, simulatedClient);
         if (simulatedClient.getReceivedServerHello()) {
             evaluateServerHello(context, simulatedClient);
-        }
-        if (simulatedClient.getReceivedCertificate()) {
-            evaluateCertificate(context, simulatedClient);
-        }
-        if (simulatedClient.getReceivedServerKeyExchange()) {
-            evaluateServerKeyExchange(context, simulatedClient);
-        }
-        if (simulatedClient.getReceivedServerHelloDone()) {
-            evaluateServerHelloDone(simulatedClient);
+            if (simulatedClient.getReceivedCertificate()) {
+                evaluateCertificate(context, simulatedClient);
+                if (simulatedClient.getReceivedServerKeyExchange()) {
+                    evaluateServerKeyExchange(context, simulatedClient);
+                    if (simulatedClient.getReceivedServerHelloDone()) {
+                        evaluateServerHelloDone(simulatedClient);
+                    }
+                }
+            }
         }
         return simulatedClient;
     }
@@ -123,8 +122,8 @@ public class HandshakeSimulationProbe extends TlsProbe {
         }
         simulatedClient.setSupportedVersionList(tlsClientConfig.getSupportedVersionList());
         simulatedClient.setVersionAcceptForbiddenCiphersuiteList(tlsClientConfig.getVersionAcceptForbiddenCiphersuiteList());
-        simulatedClient.setSupportedRsaKeyLengthList(tlsClientConfig.getSupportedRsaKeySizeList());
-        simulatedClient.setSupportedDheKeyLengthList(tlsClientConfig.getSupportedDheKeySizeList());
+        simulatedClient.setSupportedRsaKeySizeList(tlsClientConfig.getSupportedRsaKeySizeList());
+        simulatedClient.setSupportedDheKeySizeList(tlsClientConfig.getSupportedDheKeySizeList());
     }
 
     private void evaluateReceivedMessages(State state, SimulatedClient simulatedClient) {
@@ -134,6 +133,7 @@ public class HandshakeSimulationProbe extends TlsProbe {
         simulatedClient.setReceivedServerKeyExchange(WorkflowTraceUtil.didReceiveMessage(HandshakeMessageType.SERVER_KEY_EXCHANGE, trace));
         simulatedClient.setReceivedCertificateRequest(WorkflowTraceUtil.didReceiveMessage(HandshakeMessageType.CERTIFICATE_REQUEST, trace));
         simulatedClient.setReceivedServerHelloDone(WorkflowTraceUtil.didReceiveMessage(HandshakeMessageType.SERVER_HELLO_DONE, trace));
+        simulatedClient.setReceivedUnknown(WorkflowTraceUtil.didReceiveMessage(HandshakeMessageType.UNKNOWN, trace));
     }
 
     private void evaluateServerHello(TlsContext context, SimulatedClient simulatedClient) {
@@ -156,17 +156,18 @@ public class HandshakeSimulationProbe extends TlsProbe {
     }
 
     private void evaluateCertificate(TlsContext context, SimulatedClient simulatedClient) {
-        if (AlgorithmResolver.getKeyExchangeAlgorithm(simulatedClient.getSelectedCiphersuite()).isKeyExchangeRsa()) {
+        KeyExchangeAlgorithm kea = AlgorithmResolver.getKeyExchangeAlgorithm(simulatedClient.getSelectedCiphersuite());
+        if (kea != null && kea.isKeyExchangeRsa()) {
             simulatedClient.setServerPublicKeyParameter(getRsaPublicKeyFromCert(context.getServerCertificate()));
         }
     }
 
     private void evaluateServerKeyExchange(TlsContext context, SimulatedClient simulatedClient) {
         CipherSuite cipherSuite = context.getSelectedCipherSuite();
-        if (AlgorithmResolver.getKeyExchangeAlgorithm(cipherSuite).isKeyExchangeDh()
-                && context.getServerDhPublicKey() != null) {
+        KeyExchangeAlgorithm kea = AlgorithmResolver.getKeyExchangeAlgorithm(cipherSuite);
+        if (kea != null && kea.isKeyExchangeDh() && context.getServerDhPublicKey() != null) {
             simulatedClient.setServerPublicKeyParameter(context.getServerDhModulus().bitLength());
-        } else if (AlgorithmResolver.getKeyExchangeAlgorithm(cipherSuite).isKeyExchangeEcdh()) {
+        } else if (kea != null && kea.isKeyExchangeEcdh()) {
             if (context.getSelectedGroup() != null) {
                 simulatedClient.setSelectedNamedGroup(context.getSelectedGroup().name());
                 if (context.getSelectedGroup().getCoordinateSizeInBit() != null) {

@@ -28,6 +28,7 @@ public class SimulatedClient implements Serializable {
     private Boolean receivedServerKeyExchange = null;
     private Boolean receivedCertificateRequest = null;
     private Boolean receivedServerHelloDone = null;
+    private Boolean receivedUnknown = null;
     private ProtocolVersion highestClientProtocolVersion = null;
     private ProtocolVersion selectedProtocolVersion = null;
     private List<CipherSuite> clientSupportedCiphersuites = null;
@@ -40,8 +41,8 @@ public class SimulatedClient implements Serializable {
     private Integer serverPublicKeyParameter = null;
     private List<ProtocolVersion> supportedVersionList = null;
     private List<ProtocolVersion> versionAcceptForbiddenCiphersuiteList = null;
-    private List<Integer> supportedRsaKeyLengthList = null;
-    private List<Integer> supportedDheKeyLengthList = null;
+    private List<Integer> supportedRsaKeySizeList = null;
+    private List<Integer> supportedDheKeySizeList = null;
     //To set in HandshakeSimulationAfterProbe
     private Boolean highestPossibleProtocolVersionSeleceted = null;
     private Boolean handshakeSuccessful = null;
@@ -111,6 +112,14 @@ public class SimulatedClient implements Serializable {
 
     public void setReceivedServerHelloDone(Boolean receivedServerHelloDone) {
         this.receivedServerHelloDone = receivedServerHelloDone;
+    }
+
+    public Boolean getReceivedUnknown() {
+        return receivedUnknown;
+    }
+
+    public void setReceivedUnknown(Boolean receivedUnknown) {
+        this.receivedUnknown = receivedUnknown;
     }
 
     public ProtocolVersion getHighestClientProtocolVersion() {
@@ -217,20 +226,20 @@ public class SimulatedClient implements Serializable {
         this.versionAcceptForbiddenCiphersuiteList = versionAcceptForbiddenCiphersuiteList;
     }
 
-    public List<Integer> getSupportedRsaKeyLengthList() {
-        return supportedRsaKeyLengthList;
+    public List<Integer> getSupportedRsaKeySizeList() {
+        return supportedRsaKeySizeList;
     }
 
-    public void setSupportedRsaKeyLengthList(List<Integer> supportedRsaKeyLengthList) {
-        this.supportedRsaKeyLengthList = supportedRsaKeyLengthList;
+    public void setSupportedRsaKeySizeList(List<Integer> supportedRsaKeySizeList) {
+        this.supportedRsaKeySizeList = supportedRsaKeySizeList;
     }
 
-    public List<Integer> getSupportedDheKeyLengthList() {
-        return supportedDheKeyLengthList;
+    public List<Integer> getSupportedDheKeySizeList() {
+        return supportedDheKeySizeList;
     }
 
-    public void setSupportedDheKeyLengthList(List<Integer> supportedDheKeyLengthList) {
-        this.supportedDheKeyLengthList = supportedDheKeyLengthList;
+    public void setSupportedDheKeySizeList(List<Integer> supportedDheKeySizeList) {
+        this.supportedDheKeySizeList = supportedDheKeySizeList;
     }
 
     public Boolean getHandshakeSuccessful() {

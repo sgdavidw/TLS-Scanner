@@ -8,6 +8,7 @@ package de.rub.nds.tlsscanner.report.after;
 import de.rub.nds.tlsattacker.core.constants.AlgorithmResolver;
 import de.rub.nds.tlsattacker.core.constants.CipherSuite;
 import de.rub.nds.tlsattacker.core.constants.CompressionMethod;
+import de.rub.nds.tlsattacker.core.constants.KeyExchangeAlgorithm;
 import de.rub.nds.tlsattacker.core.constants.ProtocolVersion;
 import de.rub.nds.tlsscanner.constants.CipherSuiteGrade;
 import de.rub.nds.tlsscanner.probe.handshakeSimulation.HandshakeFailed;
@@ -28,12 +29,15 @@ public class HandshakeSimulationAfterProbe extends AfterProbe {
             for (SimulatedClient simulatedClient : report.getSimulatedClientList()) {
                 if (simulatedClient.getReceivedServerHello()) {
                     checkHighestPossibleProtocolVersionSeleceted(report, simulatedClient);
-                }
-                if (simulatedClient.getReceivedServerHelloDone()) {
-                    checkIfHandshakeWouldBeSuccessful(simulatedClient);
+                    if (simulatedClient.getReceivedServerHelloDone()) {
+                        checkIfHandshakeWouldBeSuccessful(simulatedClient);
+                    } else {
+                        simulatedClient.setHandshakeSuccessful(false);
+                        checkWhyServerHelloDoneIsMissing(report, simulatedClient);
+                    }
                 } else {
                     simulatedClient.setHandshakeSuccessful(false);
-                    checkWhyServerHelloDoneIsMissing(report, simulatedClient);
+                    checkWhyServerHelloIsMissing(report, simulatedClient);
                 }
                 if (simulatedClient.getHandshakeSuccessful()) {
                     isSuccessfulCounter++;
@@ -83,12 +87,12 @@ public class HandshakeSimulationAfterProbe extends AfterProbe {
         }
         if (isPublicKeyLengthRsaNotAccepted(simulatedClient)) {
             simulatedClient.addToFailReasons(HandshakeFailed.PUBLIC_KEY_SIZE_RSA_NOT_ACCEPTED.getReason() + " - supported sizes: "
-                    + simulatedClient.getSupportedRsaKeyLengthList());
+                    + simulatedClient.getSupportedRsaKeySizeList());
             reallySuccessful = false;
         }
         if (isPublicKeyLengthDhNotAccepted(simulatedClient)) {
             simulatedClient.addToFailReasons(HandshakeFailed.PUBLIC_KEY_SIZE_DH_NOT_ACCEPTED.getReason() + " - supported sizes: "
-                    + simulatedClient.getSupportedDheKeyLengthList());
+                    + simulatedClient.getSupportedDheKeySizeList());
             reallySuccessful = false;
         }
         simulatedClient.setHandshakeSuccessful(reallySuccessful);
@@ -107,9 +111,9 @@ public class HandshakeSimulationAfterProbe extends AfterProbe {
     private boolean isPublicKeyLengthRsaNotAccepted(SimulatedClient simulatedClient) {
         List<Integer> supportedKeyLengths;
         Integer publicKeyLength = simulatedClient.getServerPublicKeyParameter();
-        if (AlgorithmResolver.getKeyExchangeAlgorithm(simulatedClient.getSelectedCiphersuite()).isKeyExchangeRsa()
-                && simulatedClient.getSupportedRsaKeyLengthList() != null) {
-            supportedKeyLengths = simulatedClient.getSupportedRsaKeyLengthList();
+        KeyExchangeAlgorithm kea = AlgorithmResolver.getKeyExchangeAlgorithm(simulatedClient.getSelectedCiphersuite());
+        if (kea != null && kea.isKeyExchangeRsa() && simulatedClient.getSupportedRsaKeySizeList() != null) {
+            supportedKeyLengths = simulatedClient.getSupportedRsaKeySizeList();
             if (publicKeyLength < supportedKeyLengths.get(0)
                     || supportedKeyLengths.get(supportedKeyLengths.size() - 1) < publicKeyLength) {
                 return true;
@@ -121,15 +125,32 @@ public class HandshakeSimulationAfterProbe extends AfterProbe {
     private boolean isPublicKeyLengthDhNotAccepted(SimulatedClient simulatedClient) {
         List<Integer> supportedKeyLengths;
         Integer publicKeyLength = simulatedClient.getServerPublicKeyParameter();
-        if (AlgorithmResolver.getKeyExchangeAlgorithm(simulatedClient.getSelectedCiphersuite()).isKeyExchangeDh()
-                && simulatedClient.getSupportedDheKeyLengthList() != null) {
-            supportedKeyLengths = simulatedClient.getSupportedDheKeyLengthList();
+        KeyExchangeAlgorithm kea = AlgorithmResolver.getKeyExchangeAlgorithm(simulatedClient.getSelectedCiphersuite());
+        if (kea != null && kea.isKeyExchangeDh() && simulatedClient.getSupportedDheKeySizeList() != null) {
+            supportedKeyLengths = simulatedClient.getSupportedDheKeySizeList();
             if (publicKeyLength < supportedKeyLengths.get(0)
                     || supportedKeyLengths.get(supportedKeyLengths.size() - 1) < publicKeyLength) {
                 return true;
             }
         }
         return false;
+    }
+
+    private void checkWhyServerHelloIsMissing(SiteReport report, SimulatedClient simulatedClient) {
+        boolean reasonFound = false;
+        if (isProtocolMismatch(report, simulatedClient)) {
+            simulatedClient.addToFailReasons(HandshakeFailed.PROTOCOL_MISMATCH.getReason());
+            reasonFound = true;
+        } else if (isCiphersuiteMismatch(report, simulatedClient)) {
+            simulatedClient.addToFailReasons(HandshakeFailed.CIPHERSUITE_MISMATCH.getReason());
+            reasonFound = true;
+        } else if (isParsingError(simulatedClient)) {
+            simulatedClient.addToFailReasons(HandshakeFailed.PARSING_ERROR.getReason());
+            reasonFound = true;
+        }
+        if (!reasonFound) {
+            simulatedClient.addToFailReasons(HandshakeFailed.UNKNOWN.getReason());
+        }
     }
 
     private void checkWhyServerHelloDoneIsMissing(SiteReport report, SimulatedClient simulatedClient) {
@@ -168,6 +189,23 @@ public class HandshakeSimulationAfterProbe extends AfterProbe {
                     }
                 }
             }
+        }
+        return true;
+    }
+
+    private boolean isParsingError(SimulatedClient simulatedClient) {
+        int counter = 0;
+        if (simulatedClient.getReceivedCertificate()) {
+            counter++;
+        }
+        if (simulatedClient.getReceivedServerKeyExchange()) {
+            counter++;
+        }
+        if (simulatedClient.getReceivedServerHelloDone()) {
+            counter++;
+        }
+        if (counter == 0 && !simulatedClient.getReceivedUnknown()) {
+            return false;
         }
         return true;
     }
@@ -220,18 +258,18 @@ public class HandshakeSimulationAfterProbe extends AfterProbe {
     }
 
     private boolean isPublicKeyLengthToSmall(SimulatedClient simulatedClient) {
-        CipherSuite cipherSuite = simulatedClient.getSelectedCiphersuite();
+        KeyExchangeAlgorithm kea = AlgorithmResolver.getKeyExchangeAlgorithm(simulatedClient.getSelectedCiphersuite());
         Integer pubKey = simulatedClient.getServerPublicKeyParameter();
         Integer minRsa = 1024;
         Integer minDh = 1024;
         Integer minEcdh = 160;
-        if (AlgorithmResolver.getKeyExchangeAlgorithm(cipherSuite).isKeyExchangeRsa() && pubKey <= minRsa) {
+        if (kea != null && kea.isKeyExchangeRsa() && pubKey <= minRsa) {
             simulatedClient.addToInsecureReasons(ConnectionInsecure.PUBLIC_KEY_SIZE_TOO_SMALL.getReason() + " - rsa > " + minRsa);
             return true;
-        } else if (AlgorithmResolver.getKeyExchangeAlgorithm(cipherSuite).isKeyExchangeDh() && pubKey <= minDh) {
+        } else if (kea != null && kea.isKeyExchangeDh() && pubKey <= minDh) {
             simulatedClient.addToInsecureReasons(ConnectionInsecure.PUBLIC_KEY_SIZE_TOO_SMALL.getReason() + " - dh > " + minDh);
             return true;
-        } else if (AlgorithmResolver.getKeyExchangeAlgorithm(cipherSuite).isKeyExchangeEcdh() && pubKey <= minEcdh) {
+        } else if (kea != null && kea.isKeyExchangeEcdh() && pubKey <= minEcdh) {
             simulatedClient.addToInsecureReasons(ConnectionInsecure.PUBLIC_KEY_SIZE_TOO_SMALL.getReason() + " - ecdh > " + minEcdh);
             return true;
         }
@@ -276,12 +314,13 @@ public class HandshakeSimulationAfterProbe extends AfterProbe {
     }
 
     private boolean isKeyLengthWhitelisted(CipherSuite cipherSuite, Integer keyLength) {
-        if (AlgorithmResolver.getKeyExchangeAlgorithm(cipherSuite).isKeyExchangeEcdh() && cipherSuite.isEphemeral()) {
+        KeyExchangeAlgorithm kea = AlgorithmResolver.getKeyExchangeAlgorithm(cipherSuite);
+        if (kea != null && kea.isKeyExchangeEcdh() && cipherSuite.isEphemeral()) {
             if (keyLength >= 3072) {
                 return true;
             }
         }
-        if (AlgorithmResolver.getKeyExchangeAlgorithm(cipherSuite).isKeyExchangeEcdh() && cipherSuite.isEphemeral()) {
+        if (kea != null && kea.isKeyExchangeEcdh() && cipherSuite.isEphemeral()) {
             if (keyLength >= 256) {
                 return true;
             }
