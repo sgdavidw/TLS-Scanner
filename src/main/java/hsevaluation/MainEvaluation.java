@@ -25,9 +25,9 @@ public class MainEvaluation {
 
     private static final String FOLDER = "Evaluation_Scans";
     private static final String LIST = "top-1m.csv";
-    private static final int NUMBER_OF_WEBSITES = 10;
-    private static final int THREADS = 10;
-    private static final int AGGRO = 18;
+    private static final int NUMBER_OF_WEBSITES = 40;
+    private static final int THREADS = 6;
+    private static final int AGGRO = 10;
 
     private static GeneralDelegate generalDelegate = null;
     private static ClientDelegate clientDelegate = null;
@@ -79,6 +79,7 @@ public class MainEvaluation {
         System.out.println("");
         System.out.println("Evaluating Handshake Simulation Reports...");
         System.out.println("");
+        
         for (String url : urls) {
             hSResFile = new File(FOLDER + "/" + url + ".xml");
             if (hSResFile.exists()) {
