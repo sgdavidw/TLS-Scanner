@@ -25,7 +25,7 @@ public class MainEvaluation {
 
     private static final String FOLDER = "Evaluation_Scans";
     private static final String LIST = "top-1m.csv";
-    private static final int NUMBER_OF_WEBSITES = 40;
+    private static final int NUMBER_OF_WEBSITES = 60;
     private static final int THREADS = 6;
     private static final int AGGRO = 10;
 
@@ -103,8 +103,11 @@ public class MainEvaluation {
     private static void performEvaluation(List<HSRes> hSResList) {
         int supportsTlsCounter = 0;
         for (HSRes hSRes : hSResList) {
-            if (hSRes.getSupportsSslTls()) {
+            if (hSRes.getSupportsSslTls() != null && hSRes.getSupportsSslTls()) {
                 supportsTlsCounter++;
+                System.out.println(hSRes.getHost()+" tls yes");
+            } else {
+                System.out.println(hSRes.getHost()+" tls no");
             }
         }
         System.out.println("");
