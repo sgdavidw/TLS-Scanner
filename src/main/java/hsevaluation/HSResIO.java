@@ -6,18 +6,20 @@
 package hsevaluation;
 
 import de.rub.nds.modifiablevariable.util.XMLPrettyPrinter;
-import de.rub.nds.tlsscanner.probe.handshakeSimulation.TlsClientConfig;
-import de.rub.nds.tlsscanner.probe.handshakeSimulation.TlsClientConfigIO;
+import de.rub.nds.tlsscanner.probe.handshakeSimulation.SimulatedClient;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.PropertyException;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.xpath.XPathExpressionException;
@@ -29,7 +31,34 @@ public class HSResIO {
     private HSResIO() {
     }
     
+    private static JAXBContext context;
+
+    private static synchronized JAXBContext getJAXBContext() throws JAXBException, IOException {
+        if (context == null) {
+            context = JAXBContext.newInstance(HSRes.class, SimulatedClient.class);
+        }
+        return context;
+}
+    
     public static void write(HSRes hSRes, File file) {
+        try {
+            context = getJAXBContext();
+        } catch (JAXBException ex) {
+            Logger.getLogger(HSResIO.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(HSResIO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        Marshaller m = null;
+        try {
+            m = context.createMarshaller();
+        } catch (JAXBException ex) {
+            Logger.getLogger(HSResIO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        try {
+            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+        } catch (PropertyException ex) {
+            Logger.getLogger(HSResIO.class.getName()).log(Level.SEVERE, null, ex);
+        }
         OutputStream os = null;
         try {
             os = new FileOutputStream(file);
@@ -37,7 +66,11 @@ public class HSResIO {
             Logger.getLogger(HSRes.class.getName()).log(Level.SEVERE, null, ex);
         }
         ByteArrayOutputStream tempStream = new ByteArrayOutputStream();
-        JAXB.marshal(hSRes, tempStream);
+        try {
+            m.marshal(hSRes, tempStream);
+        } catch (JAXBException ex) {
+            Logger.getLogger(HSResIO.class.getName()).log(Level.SEVERE, null, ex);
+        }
         try {
             os.write(XMLPrettyPrinter.prettyPrintXML(new String(tempStream.toByteArray())).getBytes());
         } catch (IOException | TransformerException | XPathExpressionException | XPathFactoryConfigurationException | ParserConfigurationException | SAXException ex) {
