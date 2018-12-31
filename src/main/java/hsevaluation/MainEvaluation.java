@@ -25,9 +25,9 @@ public class MainEvaluation {
 
     private static final String FOLDER = "Evaluation_Scans";
     private static final String LIST = "top-1m.csv";
-    private static final int NUMBER_OF_WEBSITES = 60;
-    private static final int THREADS = 6;
-    private static final int AGGRO = 10;
+    private static final int NUMBER_OF_WEBSITES = 20;
+    private static final int THREADS = 2;
+    private static final int AGGRO = 4;
 
     private static GeneralDelegate generalDelegate = null;
     private static ClientDelegate clientDelegate = null;
@@ -47,30 +47,17 @@ public class MainEvaluation {
         File urlFile = new File(LIST);
         System.out.println("Reading '" + urlFile + "'...");
         List<String> urls = readListCsv(urlFile);
-
-        SiteReport report;
-        HSRes hSRes;
+        
         File hSResFile;
-        long time;
-
+        
         System.out.println("");
         System.out.println("Extracting Handshake Simulation Reports...");
         System.out.println("");
-        
+
         for (String url : urls) {
             hSResFile = new File(FOLDER + "/" + url + ".xml");
             if (!hSResFile.exists()) {
-                System.out.println("");
-                System.out.println("Extracting '" + url + "'");
-                System.out.println("");
-                time = System.currentTimeMillis();
-                report = getReportFrom(url);
-                hSRes = createHSRes(report);
-                System.out.println("Writing File '" + hSResFile + "', this may take some time...");
-                HSResIO.write(hSRes, hSResFile);
-                System.out.println("");
-                System.out.println("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
-                System.out.println("");
+                extractHsres(url, hSResFile);
             }
         }
 
@@ -79,7 +66,7 @@ public class MainEvaluation {
         System.out.println("");
         System.out.println("Evaluating Handshake Simulation Reports...");
         System.out.println("");
-        
+
         for (String url : urls) {
             hSResFile = new File(FOLDER + "/" + url + ".xml");
             if (hSResFile.exists()) {
@@ -100,14 +87,28 @@ public class MainEvaluation {
         System.out.println("##############################################################");
     }
 
+    private static void extractHsres(String url, File hSResFile) {
+        System.out.println("");
+        System.out.println("Extracting '" + url + "'");
+        System.out.println("");
+        long time = System.currentTimeMillis();
+        SiteReport report = getReportFrom(url);
+        HSRes hSRes = createHSRes(report);
+        System.out.println("Writing File '" + hSResFile + "', this may take some time...");
+        HSResIO.write(hSRes, hSResFile);
+        System.out.println("");
+        System.out.println("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
+        System.out.println("");
+    }
+
     private static void performEvaluation(List<HSRes> hSResList) {
         int supportsTlsCounter = 0;
         for (HSRes hSRes : hSResList) {
             if (hSRes.getSupportsSslTls() != null && hSRes.getSupportsSslTls()) {
                 supportsTlsCounter++;
-                System.out.println(hSRes.getHost()+" tls yes");
+                System.out.println(hSRes.getHost() + " tls yes");
             } else {
-                System.out.println(hSRes.getHost()+" tls no");
+                System.out.println(hSRes.getHost() + " tls no");
             }
         }
         System.out.println("");
