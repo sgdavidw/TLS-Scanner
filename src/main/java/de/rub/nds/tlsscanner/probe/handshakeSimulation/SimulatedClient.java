@@ -7,6 +7,7 @@ package de.rub.nds.tlsscanner.probe.handshakeSimulation;
 
 import de.rub.nds.tlsattacker.core.constants.CipherSuite;
 import de.rub.nds.tlsattacker.core.constants.CompressionMethod;
+import de.rub.nds.tlsattacker.core.constants.KeyExchangeAlgorithm;
 import de.rub.nds.tlsattacker.core.constants.ProtocolVersion;
 import java.io.Serializable;
 import java.util.LinkedList;
@@ -28,11 +29,13 @@ public class SimulatedClient implements Serializable {
     private Boolean receivedServerKeyExchange = null;
     private Boolean receivedCertificateRequest = null;
     private Boolean receivedServerHelloDone = null;
+    private Boolean receivedAlert = null;
     private Boolean receivedUnknown = null;
     private ProtocolVersion highestClientProtocolVersion = null;
     private ProtocolVersion selectedProtocolVersion = null;
     private List<CipherSuite> clientSupportedCiphersuites = null;
     private CipherSuite selectedCiphersuite = null;
+    private KeyExchangeAlgorithm keyExchangeAlgorithm = null;
     private Boolean forwardSecrecy = null;
     private CompressionMethod selectedCompressionMethod = null;
     private String negotiatedExtensions = null;
@@ -114,6 +117,14 @@ public class SimulatedClient implements Serializable {
         this.receivedServerHelloDone = receivedServerHelloDone;
     }
 
+    public Boolean getReceivedAlert() {
+        return receivedAlert;
+    }
+
+    public void setReceivedAlert(Boolean receivedAlert) {
+        this.receivedAlert = receivedAlert;
+    }
+
     public Boolean getReceivedUnknown() {
         return receivedUnknown;
     }
@@ -160,6 +171,14 @@ public class SimulatedClient implements Serializable {
 
     public void setSelectedCiphersuite(CipherSuite selectedCiphersuite) {
         this.selectedCiphersuite = selectedCiphersuite;
+    }
+
+    public KeyExchangeAlgorithm getKeyExchangeAlgorithm() {
+        return keyExchangeAlgorithm;
+    }
+
+    public void setKeyExchangeAlgorithm(KeyExchangeAlgorithm keyExchangeAlgorithm) {
+        this.keyExchangeAlgorithm = keyExchangeAlgorithm;
     }
 
     public Boolean getForwardSecrecy() {
