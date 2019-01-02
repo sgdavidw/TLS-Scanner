@@ -45,7 +45,7 @@ public class HSResExtractor implements Runnable {
         log.add("Writing File '" + hsResFile + "', this may take some time...");
         HSResIO.write(hSRes, hsResFile);
         log.add("");
-        System.out.println(Thread.currentThread().getName() + "Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
+        System.out.println(Thread.currentThread().getName() + " Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
         log.add("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
         log.add("");
     }
