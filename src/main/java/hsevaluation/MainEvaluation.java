@@ -5,68 +5,102 @@
  */
 package hsevaluation;
 
-import de.rub.nds.tlsattacker.core.config.delegate.ClientDelegate;
-import de.rub.nds.tlsattacker.core.config.delegate.GeneralDelegate;
-import de.rub.nds.tlsattacker.core.exceptions.ConfigurationException;
-import de.rub.nds.tlsscanner.ConsoleLogger;
-import de.rub.nds.tlsscanner.TlsScanner;
-import de.rub.nds.tlsscanner.config.ScannerConfig;
-import de.rub.nds.tlsscanner.constants.AnsiEscapeSequence;
-import de.rub.nds.tlsscanner.constants.ScannerDetail;
-import de.rub.nds.tlsscanner.report.SiteReport;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MainEvaluation {
 
-    private static final String FOLDER = "Evaluation_Scans";
+    public static final String FOLDER = "Evaluation_Scans";
+    public static final int THREADS = 1;
+    public static final int AGGRO = 1;
+
     private static final String LIST = "top-1m.csv";
     private static final int NUMBER_OF_WEBSITES = 20;
-    private static final int THREADS = 2;
-    private static final int AGGRO = 4;
+    private static final int EXTRACTING_THREADS = 20;
 
-    private static GeneralDelegate generalDelegate = null;
-    private static ClientDelegate clientDelegate = null;
-
-    public static void main(String args[]) {
+    public static void main(String[] args) {
 
         System.out.println("##############################################################");
         System.out.println("Starting Evaluation");
         System.out.println("##############################################################");
-
-        generalDelegate = new GeneralDelegate();
-        clientDelegate = new ClientDelegate();
 
         System.out.println("Creating Folder '" + FOLDER + "'...");
         createFolder(FOLDER);
 
         File urlFile = new File(LIST);
         System.out.println("Reading '" + urlFile + "'...");
-        List<String> urls = readListCsv(urlFile);
+        List<String> urls = getCsvList(urlFile);
         
-        File hSResFile;
-        
-        System.out.println("");
         System.out.println("Extracting Handshake Simulation Reports...");
-        System.out.println("");
-
-        for (String url : urls) {
-            hSResFile = new File(FOLDER + "/" + url + ".xml");
-            if (!hSResFile.exists()) {
-                extractHsres(url, hSResFile);
-            }
-        }
-
-        List<HSRes> hSResList = new LinkedList<>();
-
-        System.out.println("");
+        performExtraction(urls);
+        System.out.println("Extracting Handshake Simulation Reports Finished");
+        
         System.out.println("Evaluating Handshake Simulation Reports...");
-        System.out.println("");
+        List<HSRes> hsResList = getAllExtractedReports(urls);
+        System.out.println("Evaluating Handshake Simulation Reports Finished");
 
+        System.out.println("##############################################################");
+        System.out.println("Evaluation Results");
+        System.out.println("##############################################################");
+
+        performEvaluation(hsResList);
+
+        System.out.println("##############################################################");
+        System.out.println("Evaluation Finished");
+        System.out.println("##############################################################");
+    }
+
+    private static void createFolder(String path) {
+        File directory = new File(path);
+        directory.mkdir();
+    }
+
+    private static List<String> getCsvList(File file) {
+        String line = "";
+        String cvsSplitBy = ",";
+        List<String> urls = new LinkedList<>();
+        int counter = 1;
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            while ((line = br.readLine()) != null && counter <= NUMBER_OF_WEBSITES) {
+                String[] url = line.split(cvsSplitBy);
+                System.out.println(url[0] + ", " + url[1]);
+                urls.add(url[1]);
+                counter++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return urls;
+    }
+
+    private static void performExtraction(List<String> urls) {
+        ThreadPoolExecutor executor
+                = (ThreadPoolExecutor) Executors.newFixedThreadPool(EXTRACTING_THREADS);
+        for (String url : urls) {
+            executor.submit(new HSResExtractor(url));
+        }
+        executor.shutdown();
+        try {
+            while (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
+                //
+            }
+        } catch (InterruptedException ex) {
+            Logger.getLogger(MainEvaluation.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static List<HSRes> getAllExtractedReports(List<String> urls) {
+        List<HSRes> hSResList = new LinkedList<>();
+        File hSResFile;
         for (String url : urls) {
             hSResFile = new File(FOLDER + "/" + url + ".xml");
             if (hSResFile.exists()) {
@@ -74,31 +108,7 @@ public class MainEvaluation {
                 hSResList.add(HSResIO.read(hSResFile));
             }
         }
-
-        System.out.println("");
-        System.out.println("##############################################################");
-        System.out.println("Evaluation Results");
-        System.out.println("##############################################################");
-
-        performEvaluation(hSResList);
-
-        System.out.println("##############################################################");
-        System.out.println("Evaluation Completed");
-        System.out.println("##############################################################");
-    }
-
-    private static void extractHsres(String url, File hSResFile) {
-        System.out.println("");
-        System.out.println("Extracting '" + url + "'");
-        System.out.println("");
-        long time = System.currentTimeMillis();
-        SiteReport report = getReportFrom(url);
-        HSRes hSRes = createHSRes(report);
-        System.out.println("Writing File '" + hSResFile + "', this may take some time...");
-        HSResIO.write(hSRes, hSResFile);
-        System.out.println("");
-        System.out.println("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
-        System.out.println("");
+        return hSResList;
     }
 
     private static void performEvaluation(List<HSRes> hSResList) {
@@ -117,66 +127,5 @@ public class MainEvaluation {
         System.out.println("Support TLS: " + supportsTlsCounter);
         System.out.println("Do not support TLS: " + (hSResList.size() - supportsTlsCounter));
         System.out.println("");
-    }
-
-    private static SiteReport getReportFrom(String host) {
-        SiteReport report = null;
-        System.out.println("Getting Report of '" + host + "':");
-        clientDelegate.setHost(host);
-        ScannerConfig config = new ScannerConfig(generalDelegate, clientDelegate);
-        config.setThreads(THREADS);
-        config.setAggroLevel(AGGRO);
-        config.setScanDetail(ScannerDetail.ALL);
-        try {
-            TlsScanner scanner = new TlsScanner(config);
-            long time = System.currentTimeMillis();
-            System.out.println("Performing Scan, this may take some time...");
-            report = scanner.scan();
-            System.out.println("Scanned in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
-            if (!config.getGeneralDelegate().isDebug()) {
-                // ANSI escape sequences to erase the progressbar
-                ConsoleLogger.CONSOLE.info(AnsiEscapeSequence.ANSI_ONE_LINE_UP + AnsiEscapeSequence.ANSI_ERASE_LINE);
-            }
-            //ConsoleLogger.CONSOLE.info("Scanned in: " + ((System.currentTimeMillis() - time) / 1000) + "s\n" + report.getFullReport(config.getReportDetail()));
-        } catch (ConfigurationException E) {
-            System.out.println("Encountered a ConfigurationException aborting.");
-            System.err.println(E);
-        }
-        return report;
-    }
-
-    private static List<String> readListCsv(File file) {
-        String line = "";
-        String cvsSplitBy = ",";
-        List<String> urls = new LinkedList<>();
-        int counter = 1;
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            while ((line = br.readLine()) != null && counter <= NUMBER_OF_WEBSITES) {
-                String[] url = line.split(cvsSplitBy);
-                System.out.println(url[0] + ", " + url[1]);
-                urls.add(url[1]);
-                counter++;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return urls;
-    }
-
-    private static HSRes createHSRes(SiteReport report) {
-        HSRes hSRes = new HSRes();
-        hSRes.createHSRes(report.getHost());
-        hSRes.setSupportsSslTls(report.getSupportsSslTls());
-        hSRes.setHandshakeSuccessfulCounter(report.getHandshakeSuccessfulCounter());
-        hSRes.setHandshakeFailedCounter(report.getHandshakeFailedCounter());
-        hSRes.setConnectionRfc7918SecureCounter(report.getConnectionRfc7918SecureCounter());
-        hSRes.setConnectionInsecureCounter(report.getConnectionInsecureCounter());
-        hSRes.setSimulatedClientList(report.getSimulatedClientList());
-        return hSRes;
-    }
-
-    private static void createFolder(String path) {
-        File directory = new File(path);
-        directory.mkdir();
     }
 }
