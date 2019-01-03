@@ -29,7 +29,7 @@ public class HSResExtractor implements Runnable {
 
     @Override
     public void run() {
-        File hsResFile = new File(MainEvaluation.FOLDER + "/" + url + ".xml");
+        File hsResFile = new File(Main.FOLDER + "/" + url + ".xml");
         if (!hsResFile.exists()) {
             extractHsres(url, hsResFile);
         }
@@ -59,8 +59,8 @@ public class HSResExtractor implements Runnable {
         clientDelegate.setHost(host);
         
         ScannerConfig config = new ScannerConfig(generalDelegate, clientDelegate);
-        config.setThreads(MainEvaluation.THREADS);
-        config.setAggroLevel(MainEvaluation.AGGRO);
+        config.setThreads(Main.THREADS);
+        config.setAggroLevel(Main.AGGRO);
         config.setScanDetail(ScannerDetail.ALL);
         
         try {
