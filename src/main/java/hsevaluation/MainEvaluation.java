@@ -24,8 +24,8 @@ public class MainEvaluation {
     public static final int AGGRO = 1;
 
     private static final String LIST = "top-1m.csv";
-    private static final int NUMBER_OF_WEBSITES = 20;
-    private static final int EXTRACTING_THREADS = 20;
+    private static final int NUMBER_OF_WEBSITES = 250;
+    private static final int EXTRACTING_THREADS = 16;
 
     public static void main(String[] args) {
 
@@ -39,11 +39,11 @@ public class MainEvaluation {
         File urlFile = new File(LIST);
         System.out.println("Reading '" + urlFile + "'...");
         List<String> urls = getCsvList(urlFile);
-        
+
         System.out.println("Extracting Handshake Simulation Reports...");
         performExtraction(urls);
         System.out.println("Extracting Handshake Simulation Reports Finished");
-        
+
         System.out.println("Evaluating Handshake Simulation Reports...");
         List<HSRes> hsResList = getAllExtractedReports(urls);
         System.out.println("Evaluating Handshake Simulation Reports Finished");
@@ -51,9 +51,7 @@ public class MainEvaluation {
         System.out.println("##############################################################");
         System.out.println("Evaluation Results");
         System.out.println("##############################################################");
-
         performEvaluation(hsResList);
-
         System.out.println("##############################################################");
         System.out.println("Evaluation Finished");
         System.out.println("##############################################################");
