@@ -100,7 +100,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>de.rub.nds.tlsscanner.Main</mainClass>
+                            <mainClass>hsevaluation.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
