@@ -52,7 +52,7 @@ public class ScannerConfig extends TLSDelegateConfig {
     @Parameter(names = "-aggressive", required = false, description = "The level of concurrent handshakes (only applies to some resource intensive tests)")
     private int aggroLevel = 1;
 
-    private boolean noProgressbar = true;
+    private boolean noProgressbar = false;
 
     @ParametersDelegate
     private StarttlsDelegate starttlsDelegate;
