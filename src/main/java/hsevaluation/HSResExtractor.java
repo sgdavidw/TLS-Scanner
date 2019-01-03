@@ -31,13 +31,11 @@ public class HSResExtractor implements Runnable {
     }
 
     private void extractHsres(String url, File hsResFile) {
-//        System.out.println(Thread.currentThread().getName() + " - Extracting '" + url + "' ...");
         long time = System.currentTimeMillis();
         SiteReport report = getReportFrom(url);
         HSRes hSRes = createHSRes(report);
         HSResIO.write(hSRes, hsResFile);
-//        System.out.println(Thread.currentThread().getName() + " - Extracted '" + url + "' in: " + ((System.currentTimeMillis() - time) / 1000) + "s");
-        LogEntries.add("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s");
+        LogEntries.add("Extracted '" + url + "' in: " + ((System.currentTimeMillis() - time) / 1000) + "s");
     }
 
     private SiteReport getReportFrom(String host) {
