@@ -10,21 +10,16 @@ import de.rub.nds.tlsattacker.core.config.delegate.GeneralDelegate;
 import de.rub.nds.tlsattacker.core.exceptions.ConfigurationException;
 import de.rub.nds.tlsscanner.TlsScanner;
 import de.rub.nds.tlsscanner.config.ScannerConfig;
-import de.rub.nds.tlsscanner.constants.AnsiEscapeSequence;
 import de.rub.nds.tlsscanner.constants.ScannerDetail;
 import de.rub.nds.tlsscanner.report.SiteReport;
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
 
 public class HSResExtractor implements Runnable {
 
     private final String url;
-    private final List<String> log;
 
     public HSResExtractor(String url) {
         this.url = url;
-        this.log = new LinkedList<>();
     }
 
     @Override
@@ -37,22 +32,16 @@ public class HSResExtractor implements Runnable {
 
     private void extractHsres(String url, File hsResFile) {
 //        System.out.println(Thread.currentThread().getName() + " - Extracting '" + url + "' ...");
-        log.add("Extracting '" + url + "' ...");
-        log.add("");
         long time = System.currentTimeMillis();
         SiteReport report = getReportFrom(url);
         HSRes hSRes = createHSRes(report);
-        log.add("Writing File '" + hsResFile + "', this may take some time...");
         HSResIO.write(hSRes, hsResFile);
-        log.add("");
 //        System.out.println(Thread.currentThread().getName() + " - Extracted '" + url + "' in: " + ((System.currentTimeMillis() - time) / 1000) + "s");
-        log.add("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s");
-        log.add("");
+        LogEntries.add("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s");
     }
 
     private SiteReport getReportFrom(String host) {
         SiteReport report = null;
-        log.add("Getting Report of '" + host + "':");
 
         GeneralDelegate generalDelegate = new GeneralDelegate();
         ClientDelegate clientDelegate = new ClientDelegate();
@@ -65,18 +54,18 @@ public class HSResExtractor implements Runnable {
 
         try {
             TlsScanner scanner = new TlsScanner(config);
-            long time = System.currentTimeMillis();
-            log.add("Performing Scan, this may take some time...");
+//            long time = System.currentTimeMillis();
+//            LOGGER.info("Performing Scan, this may take some time...");
             report = scanner.scan();
-            log.add("Scanned in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
+//            LOGGER.info("Scanned in:" + ((System.currentTimeMillis() - time) / 1000) + "s\n");
             if (!config.getGeneralDelegate().isDebug()) {
                 // ANSI escape sequences to erase the progressbar
-                log.add(AnsiEscapeSequence.ANSI_ONE_LINE_UP + AnsiEscapeSequence.ANSI_ERASE_LINE);
+//                ConsoleLogger.CONSOLE.info(AnsiEscapeSequence.ANSI_ONE_LINE_UP + AnsiEscapeSequence.ANSI_ERASE_LINE);
             }
-            //ConsoleLogger.CONSOLE.info("Scanned in: " + ((System.currentTimeMillis() - time) / 1000) + "s\n" + report.getFullReport(config.getReportDetail()));
+//            ConsoleLogger.CONSOLE.info("Scanned in: " + ((System.currentTimeMillis() - time) / 1000) + "s\n" + report.getFullReport(config.getReportDetail()));
         } catch (ConfigurationException E) {
-            log.add("Encountered a ConfigurationException aborting.");
-            log.add(E.toString());
+            System.err.println("Encountered a ConfigurationException aborting.");
+            System.err.println(E);
         }
         return report;
     }

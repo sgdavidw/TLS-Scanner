@@ -81,7 +81,7 @@ public class Main {
         return urls;
     }
 
-    private static void performExtraction(List<String> urls) {
+    private static void performExtraction(List<String> urls) {        
         ThreadPoolExecutor executor
                 = (ThreadPoolExecutor) Executors.newFixedThreadPool(EXTRACTING_THREADS);
         for (String url : urls) {
@@ -95,6 +95,9 @@ public class Main {
             }
         } catch (InterruptedException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        for (String logEntry : LogEntries.getEntries()) {
+            System.out.println(logEntry);
         }
     }
 
