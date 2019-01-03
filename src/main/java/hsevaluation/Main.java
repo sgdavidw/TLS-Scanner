@@ -16,6 +16,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import me.tongfei.progressbar.ProgressBar;
 
 public class Main {
 
@@ -44,9 +45,9 @@ public class Main {
         performExtraction(urls);
         System.out.println("Extracting Handshake Simulation Reports Finished");
 
-        System.out.println("Evaluating Handshake Simulation Reports...");
+        System.out.println("Loading Handshake Simulation Reports...");
         List<HSRes> hsResList = getAllExtractedReports(urls);
-        System.out.println("Evaluating Handshake Simulation Reports Finished");
+        System.out.println("Loading Handshake Simulation Reports Finished");
 
         System.out.println("##############################################################");
         System.out.println("Evaluation Results");
@@ -70,7 +71,7 @@ public class Main {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             while ((line = br.readLine()) != null && counter <= NUMBER_OF_WEBSITES) {
                 String[] url = line.split(cvsSplitBy);
-                System.out.println(url[0] + ", " + url[1]);
+//                System.out.println(url[0] + ", " + url[1]);
                 urls.add(url[1]);
                 counter++;
             }
@@ -87,9 +88,10 @@ public class Main {
             executor.submit(new HSResExtractor(url));
         }
         executor.shutdown();
+        ProgressBar pb = new ProgressBar("", executor.getTaskCount());
         try {
-            while (!executor.awaitTermination(10, TimeUnit.SECONDS)) {
-                //
+            while (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
+                pb.stepTo(executor.getCompletedTaskCount());
             }
         } catch (InterruptedException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
@@ -99,31 +101,38 @@ public class Main {
     private static List<HSRes> getAllExtractedReports(List<String> urls) {
         List<HSRes> hSResList = new LinkedList<>();
         File hSResFile;
+        ProgressBar pb = new ProgressBar("", urls.size());
         for (String url : urls) {
             hSResFile = new File(FOLDER + "/" + url + ".xml");
             if (hSResFile.exists()) {
-                System.out.println("Reading File '" + hSResFile + "'...");
+//                System.out.println("Reading File '" + hSResFile + "'...");
                 hSResList.add(HSResIO.read(hSResFile));
             }
+            pb.step();
         }
         return hSResList;
     }
 
     private static void performEvaluation(List<HSRes> hSResList) {
         int supportsTlsCounter = 0;
+        int tlsButNoHsData = 0;
         for (HSRes hSRes : hSResList) {
             if (hSRes.getSupportsSslTls() != null && hSRes.getSupportsSslTls()) {
                 supportsTlsCounter++;
-                System.out.println(hSRes.getHost() + " tls yes");
+//                System.out.println(hSRes.getHost() + " tls yes");
+                if (hSRes.getHandshakeSuccessfulCounter() == null) {
+                    tlsButNoHsData++;
+                }
             } else {
-                System.out.println(hSRes.getHost() + " tls no");
+//                System.out.println(hSRes.getHost() + " tls no");
             }
         }
-        System.out.println("");
         System.out.println("Tested Websites: " + hSResList.size());
         System.out.println("");
         System.out.println("Support TLS: " + supportsTlsCounter);
         System.out.println("Do not support TLS: " + (hSResList.size() - supportsTlsCounter));
         System.out.println("");
+        System.out.println("Support TLS but no handshake data: " + tlsButNoHsData);
+
     }
 }

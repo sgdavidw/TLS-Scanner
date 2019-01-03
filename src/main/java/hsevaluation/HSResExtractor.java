@@ -36,7 +36,7 @@ public class HSResExtractor implements Runnable {
     }
 
     private void extractHsres(String url, File hsResFile) {
-        System.out.println(Thread.currentThread().getName() + " - Extracting '" + url + "' ...");
+//        System.out.println(Thread.currentThread().getName() + " - Extracting '" + url + "' ...");
         log.add("Extracting '" + url + "' ...");
         log.add("");
         long time = System.currentTimeMillis();
@@ -45,7 +45,7 @@ public class HSResExtractor implements Runnable {
         log.add("Writing File '" + hsResFile + "', this may take some time...");
         HSResIO.write(hSRes, hsResFile);
         log.add("");
-        System.out.println(Thread.currentThread().getName() + " - Extracted '" + url + "' in: " + ((System.currentTimeMillis() - time) / 1000) + "s");
+//        System.out.println(Thread.currentThread().getName() + " - Extracted '" + url + "' in: " + ((System.currentTimeMillis() - time) / 1000) + "s");
         log.add("Extracted '" + url + "' in:" + ((System.currentTimeMillis() - time) / 1000) + "s");
         log.add("");
     }
@@ -53,16 +53,16 @@ public class HSResExtractor implements Runnable {
     private SiteReport getReportFrom(String host) {
         SiteReport report = null;
         log.add("Getting Report of '" + host + "':");
-        
+
         GeneralDelegate generalDelegate = new GeneralDelegate();
         ClientDelegate clientDelegate = new ClientDelegate();
         clientDelegate.setHost(host);
-        
+
         ScannerConfig config = new ScannerConfig(generalDelegate, clientDelegate);
         config.setThreads(Main.THREADS);
         config.setAggroLevel(Main.AGGRO);
         config.setScanDetail(ScannerDetail.ALL);
-        
+
         try {
             TlsScanner scanner = new TlsScanner(config);
             long time = System.currentTimeMillis();
