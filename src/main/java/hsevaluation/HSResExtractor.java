@@ -62,8 +62,8 @@ public class HSResExtractor implements Runnable {
             }
 //            ConsoleLogger.CONSOLE.info("Scanned in: " + ((System.currentTimeMillis() - time) / 1000) + "s\n" + report.getFullReport(config.getReportDetail()));
         } catch (ConfigurationException E) {
-            System.err.println("Encountered a ConfigurationException aborting.");
-            System.err.println(E);
+            LogEntries.add("Extracting '" + url + " - Encountered a ConfigurationException aborting.");
+            LogEntries.add(E.toString());
         }
         return report;
     }
