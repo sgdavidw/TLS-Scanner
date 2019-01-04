@@ -24,6 +24,7 @@ public class Main {
     public static final int AGGRO = 1;
 
     private static final String LIST = "top-1m.csv";
+    private static final int START_NUMBER = 1;
     private static final int NUMBER_OF_WEBSITES = 1000;
     private static final int EXTRACTING_THREADS = 16;
 
@@ -74,9 +75,11 @@ public class Main {
         int counter = 1;
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             while ((line = br.readLine()) != null && counter <= NUMBER_OF_WEBSITES) {
-                String[] url = line.split(cvsSplitBy);
-                System.out.println(url[0] + ", " + url[1]);
-                urls.add(url[1]);
+                if (counter >= START_NUMBER) {
+                    String[] url = line.split(cvsSplitBy);
+                    System.out.println(url[0] + ", " + url[1]);
+                    urls.add(url[1]);
+                }
                 counter++;
             }
         } catch (IOException e) {
