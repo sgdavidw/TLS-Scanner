@@ -13,13 +13,17 @@ import de.rub.nds.tlsscanner.config.ScannerConfig;
 import de.rub.nds.tlsscanner.constants.ScannerDetail;
 import de.rub.nds.tlsscanner.report.SiteReport;
 import java.io.File;
+import java.util.LinkedList;
+import java.util.List;
 
 public class HSResExtractor implements Runnable {
 
     private final String url;
+    private final List<String> log;
 
     public HSResExtractor(String url) {
         this.url = url;
+        this.log = new LinkedList<>();
     }
 
     @Override
@@ -27,29 +31,37 @@ public class HSResExtractor implements Runnable {
         File hsResFile = new File(Main.FOLDER + "/" + url + ".xml");
         if (!hsResFile.exists()) {
             extractHsres(url, hsResFile);
+        } else {
+            log.add("INFO: File for '" + url + "' already exisits");
         }
+        LogEntries.add(log.toString());
     }
 
     private void extractHsres(String url, File hsResFile) {
         long time = System.currentTimeMillis();
         SiteReport report = getReportFrom(url);
-        HSRes hSRes = createHSRes(report);
-        HSResIO.write(hSRes, hsResFile);
-        LogEntries.add("Extracted '" + url + "' in: " + ((System.currentTimeMillis() - time) / 1000) + "s");
+        if (report == null) {
+            log.add("ERROR: Cannot get report from: '" + url + "'");
+        } else {
+            HSRes hSRes = createHSRes(report);
+            HSResIO.write(hSRes, hsResFile);
+            if (hsResFile.exists()) {
+                log.add("INFO: Extracted '" + url + "' in: " + ((System.currentTimeMillis() - time) / 1000) + "s");
+            } else {
+                log.add("ERROR: Cannot write file for: '" + url + "'");
+            }
+        }
     }
 
     private SiteReport getReportFrom(String host) {
         SiteReport report = null;
-
         GeneralDelegate generalDelegate = new GeneralDelegate();
         ClientDelegate clientDelegate = new ClientDelegate();
         clientDelegate.setHost(host);
-
         ScannerConfig config = new ScannerConfig(generalDelegate, clientDelegate);
         config.setThreads(Main.THREADS);
         config.setAggroLevel(Main.AGGRO);
         config.setScanDetail(ScannerDetail.ALL);
-
         try {
             TlsScanner scanner = new TlsScanner(config);
 //            long time = System.currentTimeMillis();
@@ -62,8 +74,8 @@ public class HSResExtractor implements Runnable {
             }
 //            ConsoleLogger.CONSOLE.info("Scanned in: " + ((System.currentTimeMillis() - time) / 1000) + "s\n" + report.getFullReport(config.getReportDetail()));
         } catch (ConfigurationException E) {
-            LogEntries.add("Extracting '" + url + " - Encountered a ConfigurationException aborting.");
-            LogEntries.add(E.toString());
+            log.add("ERROR: Extracting '" + url + " - Encountered a ConfigurationException aborting.");
+            log.add(E.toString());
         }
         return report;
     }

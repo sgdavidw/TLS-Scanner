@@ -13,7 +13,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import me.tongfei.progressbar.ProgressBar;
@@ -81,23 +80,34 @@ public class Main {
         return urls;
     }
 
-    private static void performExtraction(List<String> urls) {        
-        ThreadPoolExecutor executor
-                = (ThreadPoolExecutor) Executors.newFixedThreadPool(EXTRACTING_THREADS);
+    private static void performExtraction(List<String> urls) {
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(EXTRACTING_THREADS);
         for (String url : urls) {
             executor.submit(new HSResExtractor(url));
         }
         executor.shutdown();
         ProgressBar pb = new ProgressBar("", executor.getTaskCount());
-        try {
-            while (!executor.awaitTermination(1, TimeUnit.SECONDS)) {
-                pb.stepTo(executor.getCompletedTaskCount());
+        while (true) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+            pb.stepTo(executor.getCompletedTaskCount());
+            if (executor.isTerminated()) {
+                pb.stepTo(pb.getMax());
+                pb.close();
+                break;
+            }
         }
-        for (String logEntry : LogEntries.getEntries()) {
-            System.out.println(logEntry);
+        System.out.println("");
+        System.out.println("Extraction Log:");
+        if (LogEntries.getEntries().isEmpty()) {
+            System.out.println("-");
+        } else {
+            for (String logEntry : LogEntries.getEntries()) {
+                System.out.println(logEntry);
+            }
         }
     }
 
@@ -112,6 +122,13 @@ public class Main {
                 hSResList.add(HSResIO.read(hSResFile));
             }
             pb.step();
+        }
+        pb.close();
+        for (String url : urls) {
+            hSResFile = new File(FOLDER + "/" + url + ".xml");
+            if (!hSResFile.exists()) {
+                System.out.println("INFO: File for '" + url + "' does not exists");
+            }
         }
         return hSResList;
     }
