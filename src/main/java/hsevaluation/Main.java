@@ -185,6 +185,7 @@ public class Main {
         System.out.println("");
         System.out.println("Connections secure: " + cSecure);
         System.out.println("Connections insecure: " + cInsecure);
+        System.out.println("Connections undefined: " + (hsSuccessful - cSecure - cInsecure));
         System.out.println("");
         tmp1 = ((double) cSecure) / ((double) hsSuccessful) * 100.0;
         System.out.println("Connections secure rate in %: " + tmp1);
