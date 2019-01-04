@@ -33,7 +33,7 @@ public class Main {
         System.out.println("##############################################################");
         System.out.println("Starting Evaluation");
         System.out.println("##############################################################");
-        
+
         createFolder(FOLDER);
 
         File urlFile = new File(LIST);
@@ -148,6 +148,7 @@ public class Main {
         int hsFailed = 0;
         int cSecure = 0;
         int cInsecure = 0;
+        int testedClients = 0;
         double tmp1;
         double tmp2;
         double tmp3;
@@ -164,6 +165,7 @@ public class Main {
                         hsFailed = hsFailed + hSRes.getHandshakeFailedCounter();
                         cSecure = cSecure + hSRes.getConnectionRfc7918SecureCounter();
                         cInsecure = cInsecure + hSRes.getConnectionInsecureCounter();
+                        testedClients = hSRes.getSimulatedClientList().size();
                     }
                 }
             } else {
@@ -172,14 +174,16 @@ public class Main {
         }
         System.out.println("");
         System.out.println("Tested Websites: " + hSResList.size());
+        System.out.println("Tested Clients per Website: " + testedClients);
         System.out.println("");
         System.out.println("Supports TLS - true: " + sTlsTrue);
         System.out.println("Supports TLS - false: " + (hSResList.size() - sTlsNull - sTlsTrue));
         System.out.println("Supports TLS - undefined: " + sTlsNull);
         System.out.println("");
-        System.out.println("Supports TLS - handshake data available: " + (sTlsTrue - sTlsTrueButHsMissing));
-        System.out.println("Supports TLS - handshake data not available: " + sTlsTrueButHsMissing);
+        System.out.println("Supports TLS - Handshake data available: " + (sTlsTrue - sTlsTrueButHsMissing));
+        System.out.println("Supports TLS - Handshake data not available: " + sTlsTrueButHsMissing);
         System.out.println("");
+        System.out.println("Handshakes total: " + (hsSuccessful + hsFailed));
         System.out.println("Handshakes successful: " + hsSuccessful);
         System.out.println("Handshakes failed: " + hsFailed);
         System.out.println("");
