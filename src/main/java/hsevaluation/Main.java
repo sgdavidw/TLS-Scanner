@@ -19,7 +19,7 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class Main {
 
-    public static final String FOLDER = "Evaluation_Scans";
+    public static final String FOLDER = "Evaluation_Scans_a";
     public static final int THREADS = 1;
     public static final int AGGRO = 1;
 
@@ -70,7 +70,7 @@ public class Main {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             while ((line = br.readLine()) != null && counter <= NUMBER_OF_WEBSITES) {
                 String[] url = line.split(cvsSplitBy);
-//                System.out.println(url[0] + ", " + url[1]);
+                System.out.println(url[0] + ", " + url[1]);
                 urls.add(url[1]);
                 counter++;
             }
@@ -118,7 +118,6 @@ public class Main {
         for (String url : urls) {
             hSResFile = new File(FOLDER + "/" + url + ".xml");
             if (hSResFile.exists()) {
-//                System.out.println("Reading File '" + hSResFile + "'...");
                 hSResList.add(HSResIO.read(hSResFile));
             }
             pb.step();
@@ -134,25 +133,57 @@ public class Main {
     }
 
     private static void performEvaluation(List<HSRes> hSResList) {
-        int supportsTlsCounter = 0;
-        int tlsButNoHsData = 0;
+        int sTlsNull = 0;
+        int sTlsTrue = 0;
+        int sTlsTrueButHsMissing = 0;
+        int hsSuccessful = 0;
+        int hsFailed = 0;
+        int cSecure = 0;
+        int cInsecure = 0;
+        double tmp1;
+        double tmp2;
+        double tmp3;
         for (HSRes hSRes : hSResList) {
-            if (hSRes.getSupportsSslTls() != null && hSRes.getSupportsSslTls()) {
-                supportsTlsCounter++;
-//                System.out.println(hSRes.getHost() + " tls yes");
-                if (hSRes.getHandshakeSuccessfulCounter() == null) {
-                    tlsButNoHsData++;
+            if (hSRes.getSupportsSslTls() != null) {
+                if (hSRes.getSupportsSslTls()) {
+                    sTlsTrue++;
+                    if (hSRes.getHandshakeSuccessfulCounter() == null || hSRes.getHandshakeFailedCounter() == null
+                            || hSRes.getConnectionInsecureCounter() == null || hSRes.getConnectionRfc7918SecureCounter() == null
+                            || hSRes.getSimulatedClientList() == null) {
+                        sTlsTrueButHsMissing++;
+                    } else {
+                        hsSuccessful = hsSuccessful + hSRes.getHandshakeSuccessfulCounter();
+                        hsFailed = hsFailed + hSRes.getHandshakeFailedCounter();
+                        cSecure = cSecure + hSRes.getConnectionRfc7918SecureCounter();
+                        cInsecure = cInsecure + hSRes.getConnectionInsecureCounter();
+                    }
                 }
             } else {
-//                System.out.println(hSRes.getHost() + " tls no");
+                sTlsNull++;
             }
         }
+        System.out.println("");
         System.out.println("Tested Websites: " + hSResList.size());
         System.out.println("");
-        System.out.println("Support TLS: " + supportsTlsCounter);
-        System.out.println("Do not support TLS: " + (hSResList.size() - supportsTlsCounter));
+        System.out.println("Supports TLS - true: " + sTlsTrue);
+        System.out.println("Supports TLS - false: " + (hSResList.size() - sTlsNull - sTlsTrue));
+        System.out.println("Supports TLS - undefined: " + sTlsNull);
         System.out.println("");
-        System.out.println("Support TLS but no handshake data: " + tlsButNoHsData);
-
+        System.out.println("Supports TLS - handshake data available: " + (sTlsTrue - sTlsTrueButHsMissing));
+        System.out.println("Supports TLS - handshake data not available: " + sTlsTrueButHsMissing);
+        System.out.println("");
+        System.out.println("Handshakes successful: " + hsSuccessful);
+        System.out.println("Handshakes failed: " + hsFailed);
+        System.out.println("");
+        System.out.println("Connections secure: " + cSecure);
+        System.out.println("Connections insecure: " + cInsecure);
+        System.out.println("");
+        tmp1 = ((double) cSecure) / ((double) hsSuccessful) * 100.0;
+        System.out.println("Connections secure rate in %: " + tmp1);
+        tmp2 = ((double) cInsecure) / ((double) hsSuccessful) * 100.0;
+        System.out.println("Connections insecure rate in %: " + tmp2);
+        tmp3 = 100.0 - tmp1 - tmp2;
+        System.out.println("Connections undefined rate in %: " + tmp3);
+        System.out.println("");
     }
 }
