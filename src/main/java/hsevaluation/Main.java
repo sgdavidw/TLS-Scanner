@@ -32,13 +32,13 @@ public class Main {
         System.out.println("##############################################################");
         System.out.println("Starting Evaluation");
         System.out.println("##############################################################");
-
-        System.out.println("Creating Folder '" + FOLDER + "'...");
+        
         createFolder(FOLDER);
 
         File urlFile = new File(LIST);
         System.out.println("Reading '" + urlFile + "'...");
         List<String> urls = getCsvList(urlFile);
+        System.out.println("Reading '" + urlFile + "' Finished");
 
         System.out.println("Extracting Handshake Simulation Reports...");
         performExtraction(urls);
@@ -59,7 +59,12 @@ public class Main {
 
     private static void createFolder(String path) {
         File directory = new File(path);
-        directory.mkdir();
+        if (!directory.exists()) {
+            System.out.println("Creating Folder '" + FOLDER + "'...");
+            directory.mkdir();
+        } else {
+            System.out.println("Folder '" + FOLDER + "' already exists");
+        }
     }
 
     private static List<String> getCsvList(File file) {
