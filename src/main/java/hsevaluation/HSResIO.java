@@ -28,7 +28,7 @@ public class HSResIO {
         return contextSingleton;
     }
 
-    public static void write(HSRes hSRes, File file) {
+    public static synchronized void write(HSRes hSRes, File file) {
         try (OutputStream os = new FileOutputStream(file)) {
             JAXBContext context = getJAXBContext();
             Marshaller m = context.createMarshaller();
