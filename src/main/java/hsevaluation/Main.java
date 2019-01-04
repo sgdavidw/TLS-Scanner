@@ -174,29 +174,29 @@ public class Main {
         }
         System.out.println("");
         System.out.println("Tested Webserver: " + hSResList.size());
-        System.out.println("Tested Clients per Webserver: " + testedClients);
+        System.out.println("Tested Clients Per Webserver: " + testedClients);
         System.out.println("");
-        System.out.println("TLS - true: " + sTlsTrue);
-        System.out.println("TLS - false: " + (hSResList.size() - sTlsNull - sTlsTrue));
-        System.out.println("TLS - undefined: " + sTlsNull);
+        System.out.println("TLS - True: " + sTlsTrue);
+        System.out.println("TLS - False: " + (hSResList.size() - sTlsNull - sTlsTrue));
+        System.out.println("TLS - Undefined: " + sTlsNull);
         System.out.println("");
-        System.out.println("Handshake Data - available: " + (sTlsTrue - sTlsTrueButHsMissing));
-        System.out.println("Handshake Data - not available: " + sTlsTrueButHsMissing);
+        System.out.println("Handshake Data - Available: " + (sTlsTrue - sTlsTrueButHsMissing));
+        System.out.println("Handshake Data - Not Available: " + sTlsTrueButHsMissing);
         System.out.println("");
-        System.out.println("Handshakes - total: " + (hsSuccessful + hsFailed));
-        System.out.println("Handshakes - successful: " + hsSuccessful);
-        System.out.println("Handshakes - failed: " + hsFailed);
+        System.out.println("Handshakes - Total: " + (hsSuccessful + hsFailed));
+        System.out.println("Handshakes - Successful: " + hsSuccessful);
+        System.out.println("Handshakes - Failed: " + hsFailed);
         System.out.println("");
-        System.out.println("Connections - secure: " + cSecure);
-        System.out.println("Connections - insecure: " + cInsecure);
-        System.out.println("Connections - undefined: " + (hsSuccessful - cSecure - cInsecure));
+        System.out.println("Connections - Secure: " + cSecure);
+        System.out.println("Connections - Insecure: " + cInsecure);
+        System.out.println("Connections - Undefined: " + (hsSuccessful - cSecure - cInsecure));
         System.out.println("");
         tmp1 = ((double) cSecure) / ((double) hsSuccessful) * 100.0;
-        System.out.println("Connections secure rate in %: " + tmp1);
+        System.out.println("Connections Secure Rate In %: " + tmp1);
         tmp2 = ((double) cInsecure) / ((double) hsSuccessful) * 100.0;
-        System.out.println("Connections insecure rate in %: " + tmp2);
+        System.out.println("Connections Insecure Rate In %: " + tmp2);
         tmp3 = 100.0 - tmp1 - tmp2;
-        System.out.println("Connections undefined rate in %: " + tmp3);
+        System.out.println("Connections Undefined Rate In %: " + tmp3);
         System.out.println("");
     }
 }
