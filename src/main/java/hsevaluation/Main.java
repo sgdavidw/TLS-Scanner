@@ -18,6 +18,8 @@ import java.util.logging.Logger;
 import me.tongfei.progressbar.ProgressBar;
 
 public class Main {
+    
+    // Evaluation 1
 
     public static final String FOLDER_ALL = "Evaluation_Scans_a";
     public static final String FOLDER_DEFAULT = "Evaluation_Scans_d";
