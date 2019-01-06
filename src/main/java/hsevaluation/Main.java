@@ -19,20 +19,30 @@ import me.tongfei.progressbar.ProgressBar;
 
 public class Main {
 
-    public static final String FOLDER = "Evaluation_Scans_a";
+    public static final String FOLDER_ALL = "Evaluation_Scans_a";
+    public static final String FOLDER_DEFAULT = "Evaluation_Scans_d";
     public static final int THREADS = 1;
     public static final int AGGRO = 1;
+    
+    public static String FOLDER;
 
     private static final String LIST = "top-1m.csv";
     private static final int START_NUMBER = 1;
     private static final int NUMBER_OF_WEBSITES = 1000;
     private static final int EXTRACTING_THREADS = 16;
+    private static final boolean TEST_DEFAULT_VERSIONS = true;
 
     public static void main(String[] args) {
 
         System.out.println("##############################################################");
         System.out.println("Starting Evaluation");
         System.out.println("##############################################################");
+        
+        if (TEST_DEFAULT_VERSIONS) {
+            FOLDER = FOLDER_DEFAULT;
+        } else {
+            FOLDER = FOLDER_ALL;
+        }
 
         createFolder(FOLDER);
 
@@ -152,6 +162,11 @@ public class Main {
         double tmp1;
         double tmp2;
         double tmp3;
+        if (TEST_DEFAULT_VERSIONS) {
+            testedClients = 12;
+        } else {
+            testedClients = 270;
+        }
         for (HSRes hSRes : hSResList) {
             if (hSRes.getSupportsSslTls() != null) {
                 if (hSRes.getSupportsSslTls()) {
@@ -165,7 +180,6 @@ public class Main {
                         hsFailed = hsFailed + hSRes.getHandshakeFailedCounter();
                         cSecure = cSecure + hSRes.getConnectionRfc7918SecureCounter();
                         cInsecure = cInsecure + hSRes.getConnectionInsecureCounter();
-                        testedClients = hSRes.getSimulatedClientList().size();
                     }
                 }
             } else {
