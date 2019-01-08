@@ -21,7 +21,7 @@ import java.util.logging.Logger;
 import me.tongfei.progressbar.ProgressBar;
 
 public class Main {
-    
+
     public static final String FOLDER_ALL = "Evaluation_Scans_a";
     public static final String FOLDER_DEFAULT = "Evaluation_Scans_d";
     public static final int THREADS = 1;
@@ -33,8 +33,8 @@ public class Main {
     private static final int START_NUMBER = 1;
     private static final int NUMBER_OF_WEBSITES = 1000;
     private static final int EXTRACTING_THREADS = 16;
-    
-    public static final boolean TEST_DEFAULT_VERSIONS = false;
+
+    public static final boolean TEST_DEFAULT_VERSIONS = true;
 
     public static void main(String[] args) {
 
@@ -160,7 +160,6 @@ public class Main {
         int sTlsTrueButHsMissing = 0;
         int hsSuccessful = 0;
         int hsFailed = 0;
-        String fReason;
         int fPM = 0;
         int fCM = 0;
         int fPE = 0;
@@ -168,7 +167,6 @@ public class Main {
         int fRSAK = 0;
         int fDHK = 0;
         int fU = 0;
-        String iReason;
         int iCGL = 0;
         int iPKS = 0;
         int iPksRsa = 0;
@@ -201,59 +199,61 @@ public class Main {
                         for (SimulatedClient simulatedClient : hSRes.getSimulatedClientList()) {
                             if (simulatedClient.getHandshakeSuccessful() != null && !simulatedClient.getHandshakeSuccessful()) {
                                 if (!simulatedClient.getFailReasons().isEmpty()) {
-                                    fReason = simulatedClient.getFailReasons().get(0);
-                                    if (fReason.contains(HandshakeFailed.PROTOCOL_MISMATCH.getReason())) {
-                                        fPM++;
-                                    }
-                                    if (fReason.contains(HandshakeFailed.CIPHERSUITE_MISMATCH.getReason())) {
-                                        fCM++;
-                                    }
-                                    if (fReason.contains(HandshakeFailed.PARSING_ERROR.getReason())) {
-                                        fPE++;
-                                    }
-                                    if (fReason.contains(HandshakeFailed.CIPHERSUITE_FORBIDDEN.getReason())) {
-                                        fCF++;
-                                    }
-                                    if (fReason.contains(HandshakeFailed.PUBLIC_KEY_SIZE_RSA_NOT_ACCEPTED.getReason())) {
-                                        fRSAK++;
-                                    }
-                                    if (fReason.contains(HandshakeFailed.PUBLIC_KEY_SIZE_DH_NOT_ACCEPTED.getReason())) {
-                                        fDHK++;
-                                    }
-                                    if (fReason.contains(HandshakeFailed.UNKNOWN.getReason())) {
-                                        fU++;
+                                    for (String fReason : simulatedClient.getFailReasons()) {
+                                        if (fReason.contains(HandshakeFailed.PROTOCOL_MISMATCH.getReason())) {
+                                            fPM++;
+                                        }
+                                        if (fReason.contains(HandshakeFailed.CIPHERSUITE_MISMATCH.getReason())) {
+                                            fCM++;
+                                        }
+                                        if (fReason.contains(HandshakeFailed.PARSING_ERROR.getReason())) {
+                                            fPE++;
+                                        }
+                                        if (fReason.contains(HandshakeFailed.CIPHERSUITE_FORBIDDEN.getReason())) {
+                                            fCF++;
+                                        }
+                                        if (fReason.contains(HandshakeFailed.PUBLIC_KEY_SIZE_RSA_NOT_ACCEPTED.getReason())) {
+                                            fRSAK++;
+                                        }
+                                        if (fReason.contains(HandshakeFailed.PUBLIC_KEY_SIZE_DH_NOT_ACCEPTED.getReason())) {
+                                            fDHK++;
+                                        }
+                                        if (fReason.contains(HandshakeFailed.UNKNOWN.getReason())) {
+                                            fU++;
+                                        }
                                     }
                                 }
                             }
                             if (simulatedClient.getConnectionInsecure() != null && simulatedClient.getConnectionInsecure()) {
                                 if (!simulatedClient.getInsecureReasons().isEmpty()) {
-                                    iReason = simulatedClient.getInsecureReasons().get(0);
-                                    if (iReason.contains(ConnectionInsecure.CIPHERSUITE_GRADE_LOW.getReason())) {
-                                        iCGL++;
-                                    }
-                                    if (iReason.contains(ConnectionInsecure.PUBLIC_KEY_SIZE_TOO_SMALL.getReason())) {
-                                        iPKS++;
-                                        if (iReason.contains("rsa")) {
-                                            iPksRsa++;
+                                    for (String iReason : simulatedClient.getInsecureReasons()) {
+                                        if (iReason.contains(ConnectionInsecure.CIPHERSUITE_GRADE_LOW.getReason())) {
+                                            iCGL++;
                                         }
-                                        if (iReason.contains("dh")) {
-                                            iPksDh++;
+                                        if (iReason.contains(ConnectionInsecure.PUBLIC_KEY_SIZE_TOO_SMALL.getReason())) {
+                                            iPKS++;
+                                            if (iReason.contains("rsa")) {
+                                                iPksRsa++;
+                                            }
+                                            if (iReason.contains("dh")) {
+                                                iPksDh++;
+                                            }
+                                            if (iReason.contains("ecdh")) {
+                                                iPksEcdh++;
+                                            }
                                         }
-                                        if (iReason.contains("ecdh")) {
-                                            iPksEcdh++;
+                                        if (iReason.contains(ConnectionInsecure.PADDING_ORACLE.getReason())) {
+                                            iPO++;
                                         }
-                                    }
-                                    if (iReason.contains(ConnectionInsecure.PADDING_ORACLE.getReason())) {
-                                        iPO++;
-                                    }
-                                    if (iReason.contains(ConnectionInsecure.BLEICHENBACHER.getReason())) {
-                                        iB++;
-                                    }
-                                    if (iReason.contains(ConnectionInsecure.CRIME.getReason())) {
-                                        iC++;
-                                    }
-                                    if (iReason.contains(ConnectionInsecure.SWEET32.getReason())) {
-                                        iS++;
+                                        if (iReason.contains(ConnectionInsecure.BLEICHENBACHER.getReason())) {
+                                            iB++;
+                                        }
+                                        if (iReason.contains(ConnectionInsecure.CRIME.getReason())) {
+                                            iC++;
+                                        }
+                                        if (iReason.contains(ConnectionInsecure.SWEET32.getReason())) {
+                                            iS++;
+                                        }
                                     }
                                 }
                             }
