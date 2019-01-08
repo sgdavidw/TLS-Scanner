@@ -5,6 +5,9 @@
  */
 package hsevaluation;
 
+import de.rub.nds.tlsscanner.probe.handshakeSimulation.ConnectionInsecure;
+import de.rub.nds.tlsscanner.probe.handshakeSimulation.HandshakeFailed;
+import de.rub.nds.tlsscanner.probe.handshakeSimulation.SimulatedClient;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -18,28 +21,28 @@ import java.util.logging.Logger;
 import me.tongfei.progressbar.ProgressBar;
 
 public class Main {
-    
-    // Evaluation 1
 
+    // Evaluation 2
     public static final String FOLDER_ALL = "Evaluation_Scans_a";
     public static final String FOLDER_DEFAULT = "Evaluation_Scans_d";
     public static final int THREADS = 1;
     public static final int AGGRO = 1;
-    
+
     public static String FOLDER;
 
     private static final String LIST = "top-1m.csv";
     private static final int START_NUMBER = 1;
     private static final int NUMBER_OF_WEBSITES = 1000;
     private static final int EXTRACTING_THREADS = 16;
-    private static final boolean TEST_DEFAULT_VERSIONS = true;
+    
+    public static final boolean TEST_DEFAULT_VERSIONS = false;
 
     public static void main(String[] args) {
 
         System.out.println("##############################################################");
         System.out.println("Starting Evaluation");
         System.out.println("##############################################################");
-        
+
         if (TEST_DEFAULT_VERSIONS) {
             FOLDER = FOLDER_DEFAULT;
         } else {
@@ -158,17 +161,30 @@ public class Main {
         int sTlsTrueButHsMissing = 0;
         int hsSuccessful = 0;
         int hsFailed = 0;
+        String fReason;
+        int fPM = 0;
+        int fCM = 0;
+        int fPE = 0;
+        int fCF = 0;
+        int fRSAK = 0;
+        int fDHK = 0;
+        int fU = 0;
+        String iReason;
+        int iCGL = 0;
+        int iPKS = 0;
+        int iPksRsa = 0;
+        int iPksDh = 0;
+        int iPksEcdh = 0;
+        int iPO = 0;
+        int iB = 0;
+        int iC = 0;
+        int iS = 0;
         int cSecure = 0;
         int cInsecure = 0;
         int testedClients = 0;
         double tmp1;
         double tmp2;
         double tmp3;
-        if (TEST_DEFAULT_VERSIONS) {
-            testedClients = 12;
-        } else {
-            testedClients = 270;
-        }
         for (HSRes hSRes : hSResList) {
             if (hSRes.getSupportsSslTls() != null) {
                 if (hSRes.getSupportsSslTls()) {
@@ -182,6 +198,67 @@ public class Main {
                         hsFailed = hsFailed + hSRes.getHandshakeFailedCounter();
                         cSecure = cSecure + hSRes.getConnectionRfc7918SecureCounter();
                         cInsecure = cInsecure + hSRes.getConnectionInsecureCounter();
+                        testedClients = hSRes.getSimulatedClientList().size();
+                        for (SimulatedClient simulatedClient : hSRes.getSimulatedClientList()) {
+                            if (simulatedClient.getHandshakeSuccessful() != null && !simulatedClient.getHandshakeSuccessful()) {
+                                if (!simulatedClient.getFailReasons().isEmpty()) {
+                                    fReason = simulatedClient.getFailReasons().get(0);
+                                    if (fReason.contains(HandshakeFailed.PROTOCOL_MISMATCH.getReason())) {
+                                        fPM++;
+                                    }
+                                    if (fReason.contains(HandshakeFailed.CIPHERSUITE_MISMATCH.getReason())) {
+                                        fCM++;
+                                    }
+                                    if (fReason.contains(HandshakeFailed.PARSING_ERROR.getReason())) {
+                                        fPE++;
+                                    }
+                                    if (fReason.contains(HandshakeFailed.CIPHERSUITE_FORBIDDEN.getReason())) {
+                                        fCF++;
+                                    }
+                                    if (fReason.contains(HandshakeFailed.PUBLIC_KEY_SIZE_RSA_NOT_ACCEPTED.getReason())) {
+                                        fRSAK++;
+                                    }
+                                    if (fReason.contains(HandshakeFailed.PUBLIC_KEY_SIZE_DH_NOT_ACCEPTED.getReason())) {
+                                        fDHK++;
+                                    }
+                                    if (fReason.contains(HandshakeFailed.UNKNOWN.getReason())) {
+                                        fU++;
+                                    }
+                                }
+                            }
+                            if (simulatedClient.getConnectionInsecure() != null && simulatedClient.getConnectionInsecure()) {
+                                if (!simulatedClient.getInsecureReasons().isEmpty()) {
+                                    iReason = simulatedClient.getInsecureReasons().get(0);
+                                    if (iReason.contains(ConnectionInsecure.CIPHERSUITE_GRADE_LOW.getReason())) {
+                                        iCGL++;
+                                    }
+                                    if (iReason.contains(ConnectionInsecure.PUBLIC_KEY_SIZE_TOO_SMALL.getReason())) {
+                                        iPKS++;
+                                        if (iReason.contains("rsa")) {
+                                            iPksRsa++;
+                                        }
+                                        if (iReason.contains("dh")) {
+                                            iPksDh++;
+                                        }
+                                        if (iReason.contains("ecdh")) {
+                                            iPksEcdh++;
+                                        }
+                                    }
+                                    if (iReason.contains(ConnectionInsecure.PADDING_ORACLE.getReason())) {
+                                        iPO++;
+                                    }
+                                    if (iReason.contains(ConnectionInsecure.BLEICHENBACHER.getReason())) {
+                                        iB++;
+                                    }
+                                    if (iReason.contains(ConnectionInsecure.CRIME.getReason())) {
+                                        iC++;
+                                    }
+                                    if (iReason.contains(ConnectionInsecure.SWEET32.getReason())) {
+                                        iS++;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             } else {
@@ -203,9 +280,27 @@ public class Main {
         System.out.println("Handshakes - Successful: " + hsSuccessful);
         System.out.println("Handshakes - Failed: " + hsFailed);
         System.out.println("");
+        System.out.println("Fail Reason " + HandshakeFailed.PROTOCOL_MISMATCH + ": " + fPM);
+        System.out.println("Fail Reason " + HandshakeFailed.CIPHERSUITE_MISMATCH + ": " + fCM);
+        System.out.println("Fail Reason " + HandshakeFailed.PARSING_ERROR + ": " + fPE);
+        System.out.println("Fail Reason " + HandshakeFailed.CIPHERSUITE_FORBIDDEN + ": " + fCF);
+        System.out.println("Fail Reason " + HandshakeFailed.PUBLIC_KEY_SIZE_RSA_NOT_ACCEPTED + ": " + fRSAK);
+        System.out.println("Fail Reason " + HandshakeFailed.PUBLIC_KEY_SIZE_DH_NOT_ACCEPTED + ": " + fDHK);
+        System.out.println("Fail Reason " + HandshakeFailed.UNKNOWN + ": " + fU);
+        System.out.println("");
         System.out.println("Connections - Secure: " + cSecure);
         System.out.println("Connections - Insecure: " + cInsecure);
         System.out.println("Connections - Undefined: " + (hsSuccessful - cSecure - cInsecure));
+        System.out.println("");
+        System.out.println("Insecure Reason " + ConnectionInsecure.CIPHERSUITE_GRADE_LOW + ": " + iCGL);
+        System.out.println("Insecure Reason " + ConnectionInsecure.PUBLIC_KEY_SIZE_TOO_SMALL + ": " + iPKS);
+        System.out.println("- RSA: " + iPksRsa);
+        System.out.println("- DH: " + iPksDh);
+        System.out.println("- ECDH: " + iPksEcdh);
+        System.out.println("Insecure Reason " + ConnectionInsecure.PADDING_ORACLE + ": " + iPO);
+        System.out.println("Insecure Reason " + ConnectionInsecure.BLEICHENBACHER + ": " + iB);
+        System.out.println("Insecure Reason " + ConnectionInsecure.CRIME + ": " + iC);
+        System.out.println("Insecure Reason " + ConnectionInsecure.SWEET32 + ": " + iS);
         System.out.println("");
         tmp1 = ((double) cSecure) / ((double) hsSuccessful) * 100.0;
         System.out.println("Connections Secure Rate In %: " + tmp1);

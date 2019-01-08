@@ -58,8 +58,15 @@ public class HandshakeSimulationProbe extends TlsProbe {
         ConfigFileList configFileList = ConfigFileList.loadConfigFileList("/" + ConfigFileList.FILE_NAME);
         for (String configFileName : configFileList.getFiles()) {
             tlsClientConfig = TlsClientConfig.createTlsClientConfig(RESOURCE_FOLDER + "/" + configFileName);
-            tlsClientConfigList.add(tlsClientConfig);
-            clientStateList.add(getPreparedClientState(tlsClientConfig));
+            if (hsevaluation.Main.TEST_DEFAULT_VERSIONS) {
+                if (tlsClientConfig.isDefaultVersion()) {
+                    tlsClientConfigList.add(tlsClientConfig);
+                    clientStateList.add(getPreparedClientState(tlsClientConfig));
+                }
+            } else {
+                tlsClientConfigList.add(tlsClientConfig);
+                clientStateList.add(getPreparedClientState(tlsClientConfig));
+            }
         }
         parallelExecutor.bulkExecute(clientStateList);
         for (int i = 0; i < tlsClientConfigList.size(); i++) {
