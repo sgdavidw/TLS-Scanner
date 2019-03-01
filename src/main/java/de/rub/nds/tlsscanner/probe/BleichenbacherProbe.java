@@ -25,6 +25,8 @@ import de.rub.nds.tlsscanner.constants.ScannerDetail;
 import de.rub.nds.tlsscanner.report.SiteReport;
 import de.rub.nds.tlsscanner.report.result.ProbeResult;
 import de.rub.nds.tlsscanner.report.result.bleichenbacher.BleichenbacherTestResult;
+
+import java.math.BigInteger;
 import java.security.interfaces.RSAPublicKey;
 import java.util.LinkedList;
 import java.util.List;
@@ -53,6 +55,7 @@ public class BleichenbacherProbe extends TlsProbe {
             LOGGER.info("Could not retrieve PublicKey from Server - is the Server running?");
             return getNotExecutedResult();
         }
+        BigInteger originalModulus = publicKey.getModulus();
         LOGGER.info("Fetched the following server public key: " + publicKey);
         List<Pkcs1Vector> pkcs1Vectors;
         if (scannerConfig.getScanDetail() == ScannerDetail.NORMAL) {
@@ -68,6 +71,14 @@ public class BleichenbacherProbe extends TlsProbe {
             LOGGER.debug("Testing: " + bbWorkflowType);
             BleichenbacherAttacker attacker = new BleichenbacherAttacker(bleichenbacherConfig, scannerConfig.createConfig(), getParallelExecutor());
             EqualityError errorType = attacker.isVulnerable(bbWorkflowType, pkcs1Vectors);
+            BigInteger publicKey2 = attacker.getTlsConfig().getDefaultServerRSAPublicKey();
+			if (publicKey2 != originalModulus) {
+                LOGGER.error("Server PublicKey appears to be changing throughout the scan.");
+                LOGGER.error("Now encountered modulos", publicKey2.toString());
+                LOGGER.error("Original modulos", originalModulus);
+                return getNotExecutedResult();
+			}
+            
             vulnerable |= (errorType != EqualityError.NONE);
             resultList.add(new BleichenbacherTestResult(errorType != EqualityError.NONE, bleichenbacherConfig.getType(), bbWorkflowType, attacker.getFingerprintPairList(), errorType));
         }
