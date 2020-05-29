@@ -113,13 +113,13 @@ public class TlsScanner {
     }
 
     private void fillDefaultProbeLists() {
-        // probeList.add(new CommonBugProbe(config, parallelExecutor));
-        // probeList.add(new SniProbe(config, parallelExecutor));
-        // probeList.add(new CompressionsProbe(config, parallelExecutor));
+        probeList.add(new CommonBugProbe(config, parallelExecutor));
+        probeList.add(new SniProbe(config, parallelExecutor));
+        probeList.add(new CompressionsProbe(config, parallelExecutor));
         // probeList.add(new NamedCurvesProbe(config, parallelExecutor));
-        // probeList.add(new CertificateProbe(config, parallelExecutor));
-        // probeList.add(new ProtocolVersionProbe(config, parallelExecutor));
-        // probeList.add(new CiphersuiteProbe(config, parallelExecutor));
+        probeList.add(new CertificateProbe(config, parallelExecutor));
+        probeList.add(new ProtocolVersionProbe(config, parallelExecutor));
+        probeList.add(new CiphersuiteProbe(config, parallelExecutor));
         // probeList.add(new CiphersuiteOrderProbe(config, parallelExecutor));
         // probeList.add(new ExtensionProbe(config, parallelExecutor));
         // probeList.add(new Tls13Probe(config, parallelExecutor));
@@ -128,7 +128,7 @@ public class TlsScanner {
         // probeList.add(new ResumptionProbe(config, parallelExecutor));
         // probeList.add(new RenegotiationProbe(config, parallelExecutor));
         // probeList.add(new HeartbleedProbe(config, parallelExecutor));
-        // probeList.add(new PaddingOracleProbe(config, parallelExecutor));
+        probeList.add(new PaddingOracleProbe(config, parallelExecutor));
         probeList.add(new BleichenbacherProbe(config, parallelExecutor));
         // probeList.add(new PoodleProbe(config, parallelExecutor));
         // probeList.add(new TlsPoodleProbe(config, parallelExecutor));
@@ -142,7 +142,7 @@ public class TlsScanner {
         // afterList.add(new EvaluateRandomnessAfterProbe());
         // afterList.add(new EcPublicKeyAfterProbe());
         // afterList.add(new DhValueAfterProbe());
-        // afterList.add(new PaddingOracleIdentificationAfterProbe());
+        afterList.add(new PaddingOracleIdentificationAfterProbe());
     }
 
     public SiteReport scan() {
