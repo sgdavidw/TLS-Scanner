@@ -114,8 +114,8 @@ public class TlsScanner {
 
     private void fillDefaultProbeLists() {
         probeList.add(new CommonBugProbe(config, parallelExecutor));
-        probeList.add(new SniProbe(config, parallelExecutor));
-        probeList.add(new CompressionsProbe(config, parallelExecutor));
+        // probeList.add(new SniProbe(config, parallelExecutor));
+        // probeList.add(new CompressionsProbe(config, parallelExecutor));
         // probeList.add(new NamedCurvesProbe(config, parallelExecutor));
         probeList.add(new CertificateProbe(config, parallelExecutor));
         probeList.add(new ProtocolVersionProbe(config, parallelExecutor));
